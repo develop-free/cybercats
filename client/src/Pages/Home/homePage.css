@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Comfortaa", sans-serif;
+}
+
+body {
+    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+    margin: 0 65px;
+}
+
+/* Main Content */
+.container-conten-1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 80px 0;
+}
+
+.text-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1400px;
+    gap: 40px;
+}
+
+.greeting, .description-users {
+    width: 48%;
+    padding: 40px;
+    border: 2px solid #512da8;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.greeting:hover, .description-users:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(81, 45, 168, 0.2);
+}
+
+.title-text-content {
+    color: #512da8;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.def-greeting {
+    color: #333;
+    line-height: 1.8;
+    text-align: justify;
+    font-size: 18px;
+}
+
+.points-desc {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.points {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: justify;
+}
+
+/* Advantages Section */
+.advantages-section {
+    margin: 80px 0;
+    text-align: center;
+}
+
+.advantages-section h2 {
+    color: #512da8;
+    margin-bottom: 40px;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.advantages-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.advantage-block {
+    border: 2px solid #512da8;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.advantage-block:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(81, 45, 168, 0.2);
+}
+
+.advantage-block img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}
+
+.advantage-block h3 {
+    color: #512da8;
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.advantage-block p {
+    color: #555;
+    line-height: 1.6;
+    font-size: 16px;
+}
