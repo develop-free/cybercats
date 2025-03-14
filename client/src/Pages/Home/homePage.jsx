@@ -1,5 +1,7 @@
 import React from 'react';
 import './homePage.css';
+import Header from '../../components/Header/headerPage';
+import Footer from '../../components/Footer/footerPage';
 import academic from '../../assets/images/academic.png';
 import calendar from '../../assets/images/calendar.png';
 import integration from '../../assets/images/integration.png';
@@ -10,6 +12,7 @@ import security from '../../assets/images/security.png';
 const Home = () => {
   return (
     <>
+      <Header />
       <div className="container-conten-1">
         <div className="text-content">
           <div className="greeting">
@@ -82,6 +85,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 };
