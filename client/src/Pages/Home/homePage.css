@@ -1,17 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Comfortaa", sans-serif;
-}
-
-body {
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
-    margin: 0 65px;
-}
-
 /* Main Content */
 .container-conten-1 {
     display: flex;
