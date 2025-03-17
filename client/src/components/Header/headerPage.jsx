@@ -32,7 +32,7 @@ const Header = () => {
             </div>
             <nav className="navbar">
                 <Link
-                    className={`navbar-button ${activeNav === '/' ? 'active' : ''} ${hoverNav === '/' ? 'hover' : ''}`}
+                    className={`navbar-button ${activeNav === '/' && !hoverNav ? 'active' : ''}`}
                     to="/"
                     onClick={() => handleNavClick('/')}
                     onMouseEnter={() => handleNavHover('/')}
@@ -41,7 +41,7 @@ const Header = () => {
                     Главная
                 </Link>
                 <Link
-                    className={`navbar-button ${activeNav === '/student' ? 'active' : ''} ${hoverNav === '/student' ? 'hover' : ''}`}
+                    className={`navbar-button ${activeNav === '/student' && !hoverNav ? 'active' : ''}`}
                     to="/student"
                     onClick={() => handleNavClick('/student')}
                     onMouseEnter={() => handleNavHover('/student')}
@@ -50,7 +50,7 @@ const Header = () => {
                     Студенту
                 </Link>
                 <Link
-                    className={`navbar-button ${activeNav === '/teacher' ? 'active' : ''} ${hoverNav === '/teacher' ? 'hover' : ''}`}
+                    className={`navbar-button ${activeNav === '/teacher' && !hoverNav ? 'active' : ''}`}
                     to="/teacher"
                     onClick={() => handleNavClick('/teacher')}
                     onMouseEnter={() => handleNavHover('/teacher')}
@@ -59,7 +59,7 @@ const Header = () => {
                     Преподавателю
                 </Link>
                 <Link
-                    className={`navbar-button ${activeNav === '/rating' ? 'active' : ''} ${hoverNav === '/rating' ? 'hover' : ''}`}
+                    className={`navbar-button ${activeNav === '/rating' && !hoverNav ? 'active' : ''}`}
                     to="/rating"
                     onClick={() => handleNavClick('/rating')}
                     onMouseEnter={() => handleNavHover('/rating')}
