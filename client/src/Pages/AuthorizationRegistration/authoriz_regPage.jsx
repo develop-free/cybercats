@@ -26,7 +26,7 @@ const Authorization = () => {
       if (isSignUp) {
         await registerUser(formData);
         toast.success('Регистрация успешна! Теперь вы можете войти в систему.', {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
@@ -34,11 +34,11 @@ const Authorization = () => {
           draggable: true,
           progress: undefined,
         });
-        setIsSignUp(false); // Переключение на форму входа после успешной регистрации
+        setIsSignUp(false);
       } else {
         const response = await loginUser(formData);
         toast.success('Авторизация успешна! Добро пожаловать!', {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
@@ -46,12 +46,13 @@ const Authorization = () => {
           draggable: true,
           progress: undefined,
         });
-        localStorage.setItem('user', JSON.stringify(response.user)); // Сохраняем пользователя в localStorage
-        navigate('/personal_account'); // Перенаправляем на страницу личного кабинета
+        localStorage.setItem('accessToken', response.accessToken);
+        localStorage.setItem('refreshToken', response.refreshToken);
+        navigate('/personal_account');
       }
     } catch (error) {
       toast.error(error.message || 'Произошла ошибка. Пожалуйста, попробуйте снова.', {
-        position: "top-right",
+        position: 'top-right',
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
@@ -72,7 +73,7 @@ const Authorization = () => {
         <div className={`form-container ${isSignUp ? 'sign-up' : 'sign-in'}`}>
           {isSignUp ? (
             <form onSubmit={handleSubmit}>
-              <h1 className='heading'>Создать аккаунт</h1>
+              <h1 className="heading">Создать аккаунт</h1>
               <div className="social-icons">
                 <a href="https://telegram.org" className="icon" target="_blank" rel="noopener noreferrer">
                   <FontAwesomeIcon icon={faTelegram} />
@@ -95,27 +96,37 @@ const Authorization = () => {
             </form>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h1 className='heading'>Авторизация</h1>
+              <h1 className="heading">Авторизация</h1>
               <div className="social-icons">
-                <a href="https://telegram.org" className="icon" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faTelegram} /></a>
-                <a href="https://vk.com" className="icon" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faVk} /></a>
-                <a href="https://google.com" className="icon" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGoogle} /></a>
-                <a href="https://yandex.ru" className="icon" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faYandex} /></a>
+                <a href="https://telegram.org" className="icon" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faTelegram} />
+                </a>
+                <a href="https://vk.com" className="icon" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faVk} />
+                </a>
+                <a href="https://google.com" className="icon" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faGoogle} />
+                </a>
+                <a href="https://yandex.ru" className="icon" target="_blank" rel="noopener noreferrer">
+                  <FontAwesomeIcon icon={faYandex} />
+                </a>
               </div>
               <span>или войти через Email и пароль</span>
               <input type="text" name="login" placeholder="Login" onChange={handleChange} />
               <input type="password" name="password" placeholder="Password" onChange={handleChange} />
               <button
                 type="button"
-                onClick={() => toast.info('Функция восстановления пароля пока недоступна', {
-                  position: "top-right",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                })}
+                onClick={() =>
+                  toast.info('Функция восстановления пароля пока недоступна', {
+                    position: 'top-right',
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  })
+                }
                 style={{ background: 'none', border: 'none', color: 'black', textTransform: 'capitalize', cursor: 'pointer' }}
               >
                 Забыл пароль?
@@ -129,12 +140,16 @@ const Authorization = () => {
             <div className="toggle-panel toggle-left">
               <h1>С возвращением!</h1>
               <p>Введите свои личные данные, чтобы использовать все возможности сайта</p>
-              <button className="hidden" id="login" onClick={toggleForm}>Войти</button>
+              <button className="hidden" id="login" onClick={toggleForm}>
+                Войти
+              </button>
             </div>
             <div className="toggle-panel toggle-right">
               <h1>Привет, друг!</h1>
               <p>Зарегистрируйтесь, указав свои личные данные, чтобы использовать все возможности сайта</p>
-              <button className="hidden" id="register" onClick={toggleForm}>Зарегистрироваться</button>
+              <button className="hidden" id="register" onClick={toggleForm}>
+                Зарегистрироваться
+              </button>
             </div>
           </div>
         </div>

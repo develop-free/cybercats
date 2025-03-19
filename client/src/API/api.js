@@ -19,3 +19,29 @@ export const loginUser = async (userData) => {
     throw error.response ? error.response.data : error.message;
   }
 };
+
+export const refreshToken = async (refreshToken) => {
+  try {
+    const response = await axios.post(`${API_URL}/refresh-token`, { refreshToken });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};
+
+export const logoutUser = async () => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : error.message;
+  }
+};

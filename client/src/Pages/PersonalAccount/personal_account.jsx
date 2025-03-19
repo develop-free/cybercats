@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import avatar from '../../assets/images/avotar.png';
+import { logoutUser } from '../../API/api';
 import './personal_account.css';
 
 const PersonalAccount = () => {
@@ -25,10 +26,32 @@ const PersonalAccount = () => {
   };
 
   // Обработка выхода из системы
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    toast.success('Вы успешно вышли из системы');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      navigate('/authorization');
+      toast.success('Выход выполнен успешно!', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (error) {
+      toast.error(error.message || 'Произошла ошибка при выходе из аккаунта.', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
   };
 
   // Рендер активного раздела
