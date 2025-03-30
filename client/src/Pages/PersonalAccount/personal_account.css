@@ -208,28 +208,48 @@
 }
 
 /* Настройки профиля */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Центрирование по вертикали */
+}
+
 .settings-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
+    align-items: flex-start; /* Выравнивание элементов по левому краю */
+    width: 300px; /* Фиксированная ширина */
+}
+
+.center-form{
+    display: flex;
+    justify-content: center;
 }
 
 .settings-form label {
     color: #512da8;
     font-size: 16px;
     font-weight: bold;
+    position: relative;
+    top: 7px;
 }
 
-.settings-form input {
-    padding: 10px;
+.settings-form input,
+.settings-form select {
+    width: 100%; /* Полная ширина полей ввода */
+    padding: 8px;
     border: 2px solid #512da8;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: 14px;
+    background: transparent;
     transition: border-color 0.3s ease;
 }
 
-.settings-form input:focus {
-    border-color: #673ab7; /* Изменение цвета рамки при фокусе */
+.settings-form input:focus,
+.settings-form select:focus {
+    border-color: #673ab7;
 }
 
 .settings-form button {
@@ -241,8 +261,29 @@
     cursor: pointer;
     font-size: 16px;
     transition: background 0.3s ease;
+    align-self: center; /* Центрирование кнопки */
 }
 
 .settings-form button:hover {
     background: #673ab7;
+}
+
+/* Стилизация полосы прокрутки */
+/* Стилизация полосы прокрутки для всей страницы */
+body::-webkit-scrollbar {
+    width: 12px; /* Ширина полосы прокрутки */
+}
+
+body::-webkit-scrollbar-track {
+    background: transparent; /* Прозрачный фон дорожки */
+    border-radius: 10px; /* Закругленные углы дорожки */
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #512da8; /* Цвет ползунка */
+    border-radius: 10px; /* Закругленные углы ползунка */
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: #673ab7; /* Цвет ползунка при наведении */
 }

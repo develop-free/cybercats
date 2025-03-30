@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faYandex, faTelegram, faVk, faGoogle } from '@fortawesome/free-brands-svg-icons';
+import { faTelegram, faVk, faGoogle, faYandex } from '@fortawesome/free-brands-svg-icons';
 import { registerUser, loginUser } from '../../API/api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,129 +9,190 @@ import './authoriz_regPage.css';
 
 const Authorization = () => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [loginData, setLoginData] = useState({ login: '', password: '' });
+  const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const toggleForm = () => {
-    setIsSignUp(!isSignUp);
+  const toggleForm = () => setIsSignUp(!isSignUp);
+
+  const handleLoginChange = (e) => {
+    setLoginData({ ...loginData, [e.target.name]: e.target.value });
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleRegisterChange = (e) => {
+    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (isSignUp) {
-        await registerUser(formData);
-        toast.success('Регистрация успешна! Теперь вы можете войти в систему.', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-        setIsSignUp(false);
-      } else {
-        const response = await loginUser(formData);
-        toast.success('Авторизация успешна! Добро пожаловать!', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-        localStorage.setItem('accessToken', response.accessToken);
-        localStorage.setItem('refreshToken', response.refreshToken);
-        navigate('/personal_account');
-      }
-    } catch (error) {
-      toast.error(error.message || 'Произошла ошибка. Пожалуйста, попробуйте снова.', {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+  const validateLoginForm = () => {
+    if (!loginData.login.trim()) throw new Error('Введите логин или email');
+    if (!loginData.password.trim()) throw new Error('Введите пароль');
+    if (loginData.password.length < 6) throw new Error('Пароль должен содержать минимум 6 символов');
+  };
+
+  const validateRegisterForm = () => {
+    if (!registerData.name.trim()) throw new Error('Введите имя');
+    if (!registerData.email.trim() || !/^\S+@\S+\.\S+$/.test(registerData.email)) {
+      throw new Error('Введите корректный email');
+    }
+    if (!registerData.password.trim() || registerData.password.length < 6) {
+      throw new Error('Пароль должен содержать минимум 6 символов');
     }
   };
 
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      validateLoginForm();
+      const response = await loginUser(loginData);
+
+      if (!response.accessToken) {
+        throw new Error('Не получили токен от сервера');
+      }
+
+      toast.success('Авторизация успешна! Добро пожаловать!');
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('userRole', response.role || 'user');
+      
+      // Перенаправление на личный кабинет
+      navigate('/personal_account/settings');
+    } catch (error) {
+      console.error('Ошибка авторизации:', error);
+      toast.error(error.message || 'Ошибка авторизации. Проверьте данные.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      validateRegisterForm();
+      const response = await registerUser(registerData);
+
+      if (!response.accessToken) {
+        throw new Error('Не получили токен от сервера');
+      }
+
+      toast.success('Регистрация успешна! Вход выполнен.');
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('userRole', response.role || 'user');
+      navigate('/personal_account');
+    } catch (error) {
+      console.error('Ошибка регистрации:', error);
+      toast.error(error.message || 'Ошибка регистрации. Проверьте данные.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const socialLinks = [
+    { icon: faTelegram, url: 'https://telegram.org' },
+    { icon: faVk, url: 'https://vk.com' },
+    { icon: faGoogle, url: 'https://google.com' },
+    { icon: faYandex, url: 'https://yandex.ru' },
+  ];
+
   return (
-    <div>
-      <ToastContainer />
-      <button id="back-button" className="back-button" onClick={() => window.history.back()}>
-        <i className="fa-solid fa-arrow-left"></i> Вернуться назад
-      </button>
+    <div className="auth-container">
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className={`container ${isSignUp ? 'active' : ''}`} id="container">
         <div className={`form-container ${isSignUp ? 'sign-up' : 'sign-in'}`}>
           {isSignUp ? (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleRegisterSubmit}>
               <h1 className="heading">Создать аккаунт</h1>
               <div className="social-icons">
-                <a href="https://telegram.org" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faTelegram} />
-                </a>
-                <a href="https://vk.com" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faVk} />
-                </a>
-                <a href="https://google.com" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faGoogle} />
-                </a>
-                <a href="https://yandex.ru" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faYandex} />
-                </a>
+                {socialLinks.map((social, index) => (
+                  <a
+                    key={index}
+                    href={social.url}
+                    className="icon"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Login with ${social.icon.iconName}`}
+                  >
+                    <FontAwesomeIcon icon={social.icon} />
+                  </a>
+                ))}
               </div>
               <span>или зарегистрироваться через Email и пароль</span>
-              <input type="text" name="name" placeholder="Name" onChange={handleChange} />
-              <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-              <input type="password" name="password" placeholder="Password" onChange={handleChange} />
-              <button type="submit">Регистрация</button>
+              <input
+                type="text"
+                name="name"
+                placeholder="Имя"
+                value={registerData.name}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={registerData.email}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Пароль (минимум 6 символов)"
+                value={registerData.password}
+                onChange={handleRegisterChange}
+                minLength="6"
+                required
+              />
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+              </button>
             </form>
           ) : (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleLoginSubmit}>
               <h1 className="heading">Авторизация</h1>
               <div className="social-icons">
-                <a href="https://telegram.org" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faTelegram} />
-                </a>
-                <a href="https://vk.com" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faVk} />
-                </a>
-                <a href="https://google.com" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faGoogle} />
-                </a>
-                <a href="https://yandex.ru" className="icon" target="_blank" rel="noopener noreferrer">
-                  <FontAwesomeIcon icon={faYandex} />
-                </a>
+                {socialLinks.map((social, index) => (
+                  <a
+                    key={index}
+                    href={social.url}
+                    className="icon"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Login with ${social.icon.iconName}`}
+                  >
+                    <FontAwesomeIcon icon={social.icon} />
+                  </a>
+                ))}
               </div>
-              <span>или войти через Email и пароль</span>
-              <input type="text" name="login" placeholder="Login" onChange={handleChange} />
-              <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+              <span>или войти через логин и пароль</span>
+              <input
+                type="text"
+                name="login"
+                placeholder="Логин (email или имя)"
+                value={loginData.login}
+                onChange={handleLoginChange}
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Пароль"
+                value={loginData.password}
+                onChange={handleLoginChange}
+                required
+              />
               <button
                 type="button"
-                onClick={() =>
-                  toast.info('Функция восстановления пароля пока недоступна', {
-                    position: 'top-right',
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                  })
-                }
-                style={{ background: 'none', border: 'none', color: 'black', textTransform: 'capitalize', cursor: 'pointer' }}
+                onClick={() => toast.info('Функция восстановления пароля пока недоступна')}
+                className="forgot-password"
               >
-                Забыл пароль?
+                Забыли пароль?
               </button>
-              <button type="submit">Войти</button>
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Вход...' : 'Войти'}
+              </button>
             </form>
           )}
         </div>
@@ -139,15 +200,15 @@ const Authorization = () => {
           <div className="toggle">
             <div className="toggle-panel toggle-left">
               <h1>С возвращением!</h1>
-              <p>Введите свои личные данные, чтобы использовать все возможности сайта</p>
-              <button className="hidden" id="login" onClick={toggleForm}>
+              <p>Введите свои данные для входа</p>
+              <button className="hidden" onClick={toggleForm}>
                 Войти
               </button>
             </div>
             <div className="toggle-panel toggle-right">
               <h1>Привет, друг!</h1>
-              <p>Зарегистрируйтесь, указав свои личные данные, чтобы использовать все возможности сайта</p>
-              <button className="hidden" id="register" onClick={toggleForm}>
+              <p>Зарегистрируйтесь для использования сайта</p>
+              <button className="hidden" onClick={toggleForm}>
                 Зарегистрироваться
               </button>
             </div>

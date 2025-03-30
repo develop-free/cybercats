@@ -9,14 +9,13 @@ const PersonalAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Проверка авторизации при загрузке компонента
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) {
-      toast.error('Пожалуйста, войдите в систему');
-      navigate('/authorization'); // Перенаправляем на страницу входа, если пользователь не авторизован
-    }
-  }, [navigate]);
+  
+    useEffect(() => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        navigate('/login');
+      }
+    }, [navigate]);
 
   // Определяем активный раздел на основе текущего пути
   const activeSection = location.pathname.split('/')[2] || 'profile';
@@ -226,20 +225,53 @@ const SettingsSection = () => {
   return (
     <div className="section" id="settings-section">
       <h2>Настройки профиля</h2>
+      <div className='center-form'>
       <form className="settings-form">
-        <label htmlFor="username">Имя пользователя:</label>
-        <input type="text" id="username" defaultValue="Иван Петров" />
-
+        <label htmlFor="lastName">Фамилия:</label>
+        <input type="text" id="lastName" defaultValue="Петров" />
+  
+        <label htmlFor="firstName">Имя:</label>
+        <input type="text" id="firstName" defaultValue="Иван" />
+  
+        <label htmlFor="middleName">Отчество:</label>
+        <input type="text" id="middleName" defaultValue="Иванович" />
+  
+        <label htmlFor="birthdate">Дата рождения:</label>
+        <input type="date" id="birthdate" />
+  
+        <label htmlFor="department">Отделение:</label>
+        <select id="department">
+          <option value="">Выберите отделение</option>
+          <option value="department1">Отделение 1</option>
+          <option value="department2">Отделение 2</option>
+          <option value="department3">Отделение 3</option>
+        </select>
+  
+        <label htmlFor="group">Группа:</label>
+        <select id="group">
+          <option value="">Выберите группу</option>
+          <option value="group1">Группа 1</option>
+          <option value="group2">Группа 2</option>
+          <option value="group3">Группа 3</option>
+        </select>
+  
+        <label htmlFor="login">Логин:</label>
+        <input type="text" id="login" defaultValue="Иван Петров" />
+  
         <label htmlFor="email">Электронная почта:</label>
         <input type="email" id="email" defaultValue="ivan.petrov@example.com" />
-
+  
         <label htmlFor="password">Новый пароль:</label>
         <input type="password" id="password" placeholder="Введите новый пароль" />
-
+  
+        <label htmlFor="avatar">Аватарка:</label>
+        <input type="file" id="avatar" accept="image/*" />
+  
         <button type="submit">Сохранить изменения</button>
       </form>
+      </div>
     </div>
-  );
+  );     
 };
 
 export default PersonalAccount;
