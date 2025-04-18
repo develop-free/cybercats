@@ -10,58 +10,47 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Request interceptor
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      
       try {
-        const response = await axios.post(`${API_URL}/refresh-token`, {}, { withCredentials: true });
-        const { accessToken } = response.data;
-
-        localStorage.setItem('accessToken', accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
+        const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, { 
+          withCredentials: true 
+        });
+        
+        localStorage.setItem('accessToken', response.data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.clear();
-        window.location.href = '/login';
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login?sessionExpired=true';
         return Promise.reject(refreshError);
       }
     }
-    return Promise.reject(error.response?.data || error);
+    
+    return Promise.reject(error);
   }
 );
 
-export const registerUser = async (userData) => {
-  const response = await api.post('/register', userData);
-  return response.data;
-};
+// Auth methods
+export const registerUser = (userData) => api.post('/auth/register', userData);
+export const loginUser = (credentials) => api.post('/auth/login', credentials);
+export const logoutUser = () => api.post('/auth/logout');
+export const checkAuth = () => api.get('/auth/check');
 
-export const loginUser = async (userData) => {
-  const response = await api.post('/login', userData);
-  return response.data;
-};
-
-export const logoutUser = async () => {
-  const response = await api.post('/logout');
-  localStorage.clear();
-  return response.data;
-};
-
-export const checkUserRole = async () => {
-  const response = await api.get('/check-role');
-  return response.data;
-};
+export default api;

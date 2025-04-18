@@ -5,26 +5,30 @@ import avatar from '../../assets/images/avotar.png';
 import { logoutUser } from '../../API/api';
 import './personal_account.css';
 
+// Импорт компонентов разделов
+import ProfileSection from './Navigates/ProfileSection/ProfileSection';
+import PortfolioSection from './Navigates/PortfolioSection/PortfolioSection';
+import AchievementsSection from './Navigates/AchievementsSection/AchievementsSection';
+import EventsSection from './Navigates/EventsSection/EventsSection';
+import SettingsSection from './Navigates/SettingsSection/SettingsSection';
+
 const PersonalAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  
-    useEffect(() => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        navigate('/login');
-      }
-    }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
-  // Определяем активный раздел на основе текущего пути
   const activeSection = location.pathname.split('/')[2] || 'profile';
 
   const handleNavigation = (section) => {
     navigate(`/personal_account/${section}`);
   };
 
-  // Обработка выхода из системы
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -53,7 +57,6 @@ const PersonalAccount = () => {
     }
   };
 
-  // Рендер активного раздела
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
@@ -73,7 +76,6 @@ const PersonalAccount = () => {
 
   return (
     <div className="personal-cabinet-container">
-      {/* Боковое меню */}
       <div className="sidebar">
         <div className="sidebar-header">
           <img src={avatar} alt="Аватар" />
@@ -81,7 +83,6 @@ const PersonalAccount = () => {
           <p>Студент</p>
         </div>
 
-        {/* Прогресс-бар и уровень */}
         <div className="level-progress">
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: '60%' }}></div>
@@ -92,7 +93,6 @@ const PersonalAccount = () => {
           </div>
         </div>
 
-        {/* Меню */}
         <nav className="sidebar-menu">
           <button
             className={`sidebar-button ${activeSection === 'profile' ? 'active' : ''}`}
@@ -130,148 +130,11 @@ const PersonalAccount = () => {
         </button>
       </div>
 
-      {/* Контентная область */}
       <div className="content">
         {renderSection()}
       </div>
     </div>
   );
-};
-
-// Компоненты для каждого раздела
-const ProfileSection = () => {
-  return (
-    <div className="section" id="main-section">
-      <h2>Мой профиль</h2>
-      <p>Здесь вы можете отслеживать свои достижения, участвовать в мероприятиях и управлять настройками профиля.</p>
-      <div className="stats">
-        <div className="stat-card">
-          <h3>Баллы</h3>
-          <p>1200</p>
-        </div>
-        <div className="stat-card">
-          <h3>Достижения</h3>
-          <p>15</p>
-        </div>
-        <div className="stat-card">
-          <h3>Мероприятия</h3>
-          <p>8</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const PortfolioSection = () => {
-  return (
-    <div className="section" id="portfolio-section">
-      <h2>Моё портфолио</h2>
-      <p>Здесь будут отображаться ваши проекты и работы.</p>
-      <div className="portfolio-list">
-        <div className="portfolio-card">
-          <h3>Проект "Технологии будущего"</h3>
-          <p>Описание: Разработка инновационного решения для образования.</p>
-        </div>
-        <div className="portfolio-card">
-          <h3>Проект "Искусственный интеллект"</h3>
-          <p>Описание: Исследование возможностей ИИ в медицине.</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AchievementsSection = () => {
-  return (
-    <div className="section" id="achievements-section">
-      <h2>Мои достижения</h2>
-      <div className="achievements-list">
-        <div className="achievement-card">
-          <h3>Квест "Технологии будущего"</h3>
-          <p>Выполнено: 10 заданий</p>
-          <p>Награда: 300 баллов</p>
-        </div>
-        <div className="achievement-card">
-          <h3>Лекция "Искусственный интеллект"</h3>
-          <p>Посещено: 5 лекций</p>
-          <p>Награда: 150 баллов</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const EventsSection = () => {
-  return (
-    <div className="section" id="events-section">
-      <h2>Мероприятия</h2>
-      <div className="events-list">
-        <div className="event-card">
-          <h3>Квест "Технологии будущего"</h3>
-          <p>Дата: 25.10.2023</p>
-          <p>Место: Аудитория 301</p>
-        </div>
-        <div className="event-card">
-          <h3>Лекция "Искусственный интеллект"</h3>
-          <p>Дата: 30.10.2023</p>
-          <p>Место: Аудитория 202</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SettingsSection = () => {
-  return (
-    <div className="section" id="settings-section">
-      <h2>Настройки профиля</h2>
-      <div className='center-form'>
-      <form className="settings-form">
-        <label htmlFor="lastName">Фамилия:</label>
-        <input type="text" id="lastName" defaultValue="Петров" />
-  
-        <label htmlFor="firstName">Имя:</label>
-        <input type="text" id="firstName" defaultValue="Иван" />
-  
-        <label htmlFor="middleName">Отчество:</label>
-        <input type="text" id="middleName" defaultValue="Иванович" />
-  
-        <label htmlFor="birthdate">Дата рождения:</label>
-        <input type="date" id="birthdate" />
-  
-        <label htmlFor="department">Отделение:</label>
-        <select id="department">
-          <option value="">Выберите отделение</option>
-          <option value="department1">Отделение 1</option>
-          <option value="department2">Отделение 2</option>
-          <option value="department3">Отделение 3</option>
-        </select>
-  
-        <label htmlFor="group">Группа:</label>
-        <select id="group">
-          <option value="">Выберите группу</option>
-          <option value="group1">Группа 1</option>
-          <option value="group2">Группа 2</option>
-          <option value="group3">Группа 3</option>
-        </select>
-  
-        <label htmlFor="login">Логин:</label>
-        <input type="text" id="login" defaultValue="Иван Петров" />
-  
-        <label htmlFor="email">Электронная почта:</label>
-        <input type="email" id="email" defaultValue="ivan.petrov@example.com" />
-  
-        <label htmlFor="password">Новый пароль:</label>
-        <input type="password" id="password" placeholder="Введите новый пароль" />
-  
-        <label htmlFor="avatar">Аватарка:</label>
-        <input type="file" id="avatar" accept="image/*" />
-  
-        <button type="submit">Сохранить изменения</button>
-      </form>
-      </div>
-    </div>
-  );     
 };
 
 export default PersonalAccount;

@@ -1,11 +1,10 @@
 .personal-cabinet-container {
     display: flex;
     width: 100%;
-    height: 100vh; /* Занимаем всю высоту экрана */
-    overflow: hidden; /* Убираем прокрутку всего контейнера */
+    height: 100vh;
+    overflow: hidden;
 }
 
-/* Боковое меню */
 .sidebar {
     width: 250px;
     background: rgba(255, 255, 255, 0.1);
@@ -15,10 +14,10 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    position: fixed; /* Фиксируем меню */
+    position: fixed;
     left: 0;
     top: 0;
-    z-index: 100; /* Убедимся, что меню поверх контента */
+    z-index: 100;
 }
 
 .sidebar-header {
@@ -31,7 +30,7 @@
     height: 100px;
     border-radius: 50%;
     margin-bottom: 10px;
-    border: 2px solid #512da8; /* Добавим рамку для аватара */
+    border: 2px solid #512da8;
 }
 
 .sidebar-header h3 {
@@ -45,7 +44,6 @@
     font-size: 16px;
 }
 
-/* Прогресс-бар и уровень в боковом меню */
 .level-progress {
     margin-bottom: 20px;
 }
@@ -104,7 +102,7 @@
 
 .sidebar-button:hover {
     background: rgba(81, 45, 168, 0.2);
-    transform: translateX(5px); /* Лёгкое смещение при наведении */
+    transform: translateX(5px);
 }
 
 .sidebar-button.active {
@@ -115,175 +113,41 @@
 .sidebar-button.logout {
     background: rgba(255, 0, 0, 0.1);
     color: #ff0000;
-    margin-top: auto; /* Кнопка будет прижата к низу */
-    margin-bottom: 50px; /* Добавляем отступ снизу */
+    margin-top: auto;
+    margin-bottom: 50px;
 }
 
 .sidebar-button.logout:hover {
     background: rgba(255, 0, 0, 0.2);
 }
 
-/* Контентная область */
 .content {
     flex: 1;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 20px;
-    margin: 20px 20px 20px 270px; /* Отступ слева для учёта фиксированного меню */
+    margin: 20px 20px 20px 270px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    overflow-y: auto; /* Прокрутка только внутри контента */
-    max-height: calc(100vh - 40px); /* Фиксируем высоту контента */
+    overflow-y: auto;
+    max-height: calc(100vh - 40px);
     min-width: 1200px;
 }
 
-.section h2 {
-    color: #512da8;
-    font-size: 28px;
-    margin-bottom: 20px;
+.content::-webkit-scrollbar {
+    width: 12px;
 }
 
-/* Статистика */
-.stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    background: rgba(81, 45, 168, 0.1);
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    flex: 1;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-5px); /* Лёгкое поднятие при наведении */
-    box-shadow: 0 8px 16px rgba(81, 45, 168, 0.2);
-}
-
-.stat-card h3 {
-    color: #512da8;
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.stat-card p {
-    color: #555;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-/* Карточки портфолио, достижений и мероприятий */
-.portfolio-list, .achievements-list, .events-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.portfolio-card, .achievement-card, .event-card {
-    background: rgba(81, 45, 168, 0.1);
-    padding: 20px;
-    border-radius: 15px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.portfolio-card:hover, .achievement-card:hover, .event-card:hover {
-    transform: translateY(-5px); /* Лёгкое поднятие при наведении */
-    box-shadow: 0 8px 16px rgba(81, 45, 168, 0.2);
-}
-
-.portfolio-card h3, .achievement-card h3, .event-card h3 {
-    color: #512da8;
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.portfolio-card p, .achievement-card p, .event-card p {
-    color: #555;
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-/* Настройки профиля */
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Центрирование по вертикали */
-}
-
-.settings-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start; /* Выравнивание элементов по левому краю */
-    width: 300px; /* Фиксированная ширина */
-}
-
-.center-form{
-    display: flex;
-    justify-content: center;
-}
-
-.settings-form label {
-    color: #512da8;
-    font-size: 16px;
-    font-weight: bold;
-    position: relative;
-    top: 7px;
-}
-
-.settings-form input,
-.settings-form select {
-    width: 100%; /* Полная ширина полей ввода */
-    padding: 8px;
-    border: 2px solid #512da8;
-    border-radius: 10px;
-    font-size: 14px;
+.content::-webkit-scrollbar-track {
     background: transparent;
-    transition: border-color 0.3s ease;
-}
-
-.settings-form input:focus,
-.settings-form select:focus {
-    border-color: #673ab7;
-}
-
-.settings-form button {
-    background: #512da8;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
     border-radius: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background 0.3s ease;
-    align-self: center; /* Центрирование кнопки */
 }
 
-.settings-form button:hover {
+.content::-webkit-scrollbar-thumb {
+    background: #512da8;
+    border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
     background: #673ab7;
-}
-
-/* Стилизация полосы прокрутки */
-/* Стилизация полосы прокрутки для всей страницы */
-body::-webkit-scrollbar {
-    width: 12px; /* Ширина полосы прокрутки */
-}
-
-body::-webkit-scrollbar-track {
-    background: transparent; /* Прозрачный фон дорожки */
-    border-radius: 10px; /* Закругленные углы дорожки */
-}
-
-body::-webkit-scrollbar-thumb {
-    background: #512da8; /* Цвет ползунка */
-    border-radius: 10px; /* Закругленные углы ползунка */
-}
-
-body::-webkit-scrollbar-thumb:hover {
-    background: #673ab7; /* Цвет ползунка при наведении */
 }

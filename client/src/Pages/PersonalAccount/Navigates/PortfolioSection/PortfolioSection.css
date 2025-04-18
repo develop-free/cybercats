@@ -1,0 +1,39 @@
+.section {
+    padding: 20px;
+  }
+  
+  .section h2 {
+    color: #512da8;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  
+  .portfolio-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .portfolio-card {
+    background: rgba(81, 45, 168, 0.1);
+    padding: 20px;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .portfolio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(81, 45, 168, 0.2);
+  }
+  
+  .portfolio-card h3 {
+    color: #512da8;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .portfolio-card p {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.6;
+  }
