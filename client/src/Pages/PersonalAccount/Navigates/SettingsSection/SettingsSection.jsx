@@ -1,252 +1,144 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import api from '../../../../API/api';
+import React, { useEffect, useState } from 'react';
 import './SettingsSection.css';
 
 const SettingsSection = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
+  const [profile, setProfile] = useState({
     lastName: '',
+    firstName: '',
     middleName: '',
-    birthDate: '',
+    birthdate: '',
     department: '',
     group: '',
+    login: '',
     email: '',
     avatar: null,
-    avatarPreview: ''
   });
 
   const [departments, setDepartments] = useState([]);
   const [groups, setGroups] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
 
-  // Загрузка начальных данных
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const [profileResponse, departmentsResponse] = await Promise.all([
-          api.get('/students/profile'),
-          api.get('/students/departments')
-        ]);
+    // Fetch profile data
+    fetch('/api/students/profile', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(response => response.json())
+      .then(data => setProfile(data))
+      .catch(error => console.error('Error fetching profile:', error));
 
-        const { department, group, ...profileData } = profileResponse.data;
-
-        setFormData({
-          ...profileData,
-          department: department?._id || '',
-          group: group?._id || '',
-          avatarPreview: profileData.avatar || ''
-        });
-
-        setDepartments(departmentsResponse.data);
-
-        if (department) {
-          const groupsResponse = await api.get(`/students/groups/${department._id}`);
-          setGroups(groupsResponse.data);
-        }
-      } catch (error) {
-        toast.error('Ошибка загрузки данных профиля');
-        console.error('Error fetching profile:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+    // Fetch departments
+    fetch('/api/students/departments')
+      .then(response => response.json())
+      .then(data => setDepartments(data))
+      .catch(error => console.error('Error fetching departments:', error));
   }, []);
 
-  // Загрузка групп при изменении отделения
   useEffect(() => {
-    if (formData.department) {
-      const fetchGroups = async () => {
-        try {
-          const response = await api.get(`/students/groups/${formData.department}`);
-          setGroups(response.data);
-        } catch (error) {
-          toast.error('Ошибка загрузки групп');
-          console.error('Error fetching groups:', error);
-        }
-      };
-      fetchGroups();
+    if (profile.department) {
+      // Fetch groups based on selected department
+      fetch(`/api/students/groups/${profile.department}`)
+        .then(response => response.json())
+        .then(data => setGroups(data))
+        .catch(error => console.error('Error fetching groups:', error));
     }
-  }, [formData.department]);
+  }, [profile.department]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { id, value } = e.target;
+    setProfile(prevProfile => ({
+      ...prevProfile,
+      [id]: value,
+    }));
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFormData(prev => ({
-        ...prev,
-        avatar: file,
-        avatarPreview: URL.createObjectURL(file)
-      }));
-    }
+    setProfile(prevProfile => ({
+      ...prevProfile,
+      avatar: e.target.files[0],
+    }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsSaving(true);
-
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('firstName', formData.firstName);
-      formDataToSend.append('lastName', formData.lastName);
-      formDataToSend.append('middleName', formData.middleName);
-      formDataToSend.append('birthDate', formData.birthDate);
-      formDataToSend.append('department', formData.department);
-      formDataToSend.append('group', formData.group);
-      formDataToSend.append('email', formData.email);
-      
-      if (formData.avatar) {
-        formDataToSend.append('avatar', formData.avatar);
-      }
-
-      const response = await api.put('/students/profile', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      toast.success('Профиль успешно обновлен!');
-      setFormData(prev => ({
-        ...prev,
-        avatar: null,
-        avatarPreview: response.data.avatar || prev.avatarPreview
-      }));
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Ошибка сохранения профиля');
-      console.error('Error saving profile:', error);
-    } finally {
-      setIsSaving(false);
+    const formData = new FormData();
+    formData.append('lastName', profile.lastName);
+    formData.append('firstName', profile.firstName);
+    formData.append('middleName', profile.middleName);
+    formData.append('birthdate', profile.birthdate);
+    formData.append('department', profile.department);
+    formData.append('group', profile.group);
+    formData.append('email', profile.email);
+    if (profile.avatar) {
+      formData.append('avatar', profile.avatar);
     }
-  };
 
-  if (isLoading) {
-    return <div className="loading-container">Загрузка профиля...</div>;
-  }
+    fetch('/api/students/profile', {
+      method: 'PUT',
+      body: formData,
+      credentials: 'include',
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === 'Профиль успешно сохранен') {
+          alert('Profile saved successfully!');
+        } else {
+          alert('Error saving profile.');
+        }
+      })
+      .catch(error => console.error('Error saving profile:', error));
+  };
 
   return (
-    <div className="settings-container">
-      <h2>Настройки профиля</h2>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="avatar-section">
-          <div className="avatar-preview">
-            <img 
-              src={formData.avatarPreview || '/default-avatar.png'} 
-              alt="Аватар" 
-            />
-          </div>
-          <div className="avatar-controls">
-            <label htmlFor="avatar-upload" className="avatar-upload-label">
-              Выбрать изображение
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-            <p>JPG, PNG (макс. 5MB)</p>
-          </div>
-        </div>
+    <div className="section" id="settings-section">
+      <div className="heading-fixed">
+        <h2>Настройки профиля</h2>
+      </div>
+      <div className='center-form'>
+        <form className="settings-form" onSubmit={handleSubmit}>
+          <label htmlFor="lastName">Фамилия:</label>
+          <input type="text" id="lastName" value={profile.lastName} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Фамилия:</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            required
-          />
-        </div>
+          <label htmlFor="firstName">Имя:</label>
+          <input type="text" id="firstName" value={profile.firstName} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Имя:</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            required
-          />
-        </div>
+          <label htmlFor="middleName">Отчество:</label>
+          <input type="text" id="middleName" value={profile.middleName} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Отчество:</label>
-          <input
-            type="text"
-            name="middleName"
-            value={formData.middleName}
-            onChange={handleChange}
-          />
-        </div>
+          <label htmlFor="birthdate">Дата рождения:</label>
+          <input type="date" id="birthdate" value={profile.birthdate} onChange={handleChange} />
 
-        <div className="form-group">
-          <label>Дата рождения:</label>
-          <input
-            type="date"
-            name="birthDate"
-            value={formData.birthDate}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Отделение:</label>
-          <select
-            name="department"
-            value={formData.department}
-            onChange={handleChange}
-            required
-          >
+          <label htmlFor="department">Отделение:</label>
+          <select id="department" value={profile.department} onChange={handleChange}>
             <option value="">Выберите отделение</option>
             {departments.map(dept => (
               <option key={dept._id} value={dept._id}>{dept.name}</option>
             ))}
           </select>
-        </div>
 
-        <div className="form-group">
-          <label>Группа:</label>
-          <select
-            name="group"
-            value={formData.group}
-            onChange={handleChange}
-            required
-            disabled={!formData.department}
-          >
+          <label htmlFor="group">Группа:</label>
+          <select id="group" value={profile.group} onChange={handleChange}>
             <option value="">Выберите группу</option>
-            {groups.map(group => (
-              <option key={group._id} value={group._id}>{group.name}</option>
+            {groups.map(grp => (
+              <option key={grp._id} value={grp._id}>{grp.name}</option>
             ))}
           </select>
-        </div>
 
-        <div className="form-group">
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
+          <label htmlFor="login">Логин:</label>
+          <input type="text" id="login" value={`${profile.firstName} ${profile.lastName}`} readOnly />
 
-        <button type="submit" disabled={isSaving} className="save-button">
-          {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
-        </button>
-      </form>
+          <label htmlFor="email">Электронная почта:</label>
+          <input type="email" id="email" value={profile.email} onChange={handleChange} />
+
+          <label htmlFor="password">Новый пароль:</label>
+          <input type="password" id="password" placeholder="Введите новый пароль" />
+
+          <label htmlFor="avatar">Аватарка:</label>
+          <input type="file" id="avatar" accept="image/*" onChange={handleFileChange} />
+
+          <button type="submit">Сохранить изменения</button>
+        </form>
+      </div>
     </div>
   );
 };

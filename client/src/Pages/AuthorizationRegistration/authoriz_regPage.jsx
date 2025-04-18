@@ -48,15 +48,14 @@ const Authorization = () => {
       validateLoginForm();
       const response = await loginUser(loginData);
 
-      if (!response.accessToken) {
-        throw new Error('Не получили токен от сервера');
+      if (!response?.data?.accessToken) {
+        throw new Error(response?.data?.message || 'Не получили токен от сервера');
       }
 
       toast.success('Авторизация успешна! Добро пожаловать!');
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('userRole', response.role || 'user');
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('userRole', response.data.role || 'user');
       
-      // Перенаправление на личный кабинет
       navigate('/personal_account/settings');
     } catch (error) {
       console.error('Ошибка авторизации:', error);
@@ -74,13 +73,13 @@ const Authorization = () => {
       validateRegisterForm();
       const response = await registerUser(registerData);
 
-      if (!response.accessToken) {
-        throw new Error('Не получили токен от сервера');
+      if (!response?.data?.accessToken) {
+        throw new Error(response?.data?.message || 'Не получили токен от сервера');
       }
 
       toast.success('Регистрация успешна! Вход выполнен.');
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('userRole', response.role || 'user');
+      localStorage.setItem('accessToken', response.data.accessToken);
+      localStorage.setItem('userRole', response.data.role || 'user');
       navigate('/personal_account');
     } catch (error) {
       console.error('Ошибка регистрации:', error);

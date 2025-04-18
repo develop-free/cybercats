@@ -10,7 +10,6 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -19,38 +18,48 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      
-      try {
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, { 
-          withCredentials: true 
-        });
-        
-        localStorage.setItem('accessToken', response.data.accessToken);
-        originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login?sessionExpired=true';
-        return Promise.reject(refreshError);
-      }
+  (response) => {
+    // Успешные ответы
+    if (response.data && response.data.success !== false) {
+      return response;
     }
     
+    // Ошибки от сервера
+    const error = new Error(response.data?.message || 'Ошибка сервера');
+    error.response = response;
+    throw error;
+  },
+  (error) => {
+    // Ошибки сети или сервера
+    if (error.response?.status === 401) {
+      localStorage.removeItem('accessToken');
+      window.location.href = '/login?sessionExpired=true';
+    }
+    
+    error.message = error.response?.data?.message || 'Ошибка сервера';
     return Promise.reject(error);
   }
 );
 
-// Auth methods
-export const registerUser = (userData) => api.post('/auth/register', userData);
-export const loginUser = (credentials) => api.post('/auth/login', credentials);
-export const logoutUser = () => api.post('/auth/logout');
-export const checkAuth = () => api.get('/auth/check');
+export const registerUser = async (userData) => {
+  const response = await api.post('/auth/register', userData);
+  return response;
+};
+
+export const loginUser = async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
+  return response;
+};
+
+export const logoutUser = async () => {
+  const response = await api.post('/auth/logout');
+  localStorage.removeItem('accessToken');
+  return response;
+};
+
+export const checkAuth = async () => {
+  return await api.get('/auth/check');
+};
 
 export default api;
