@@ -41,6 +41,7 @@ const ProfileAPI = {
       throw error;
     }
   },
+  // mafia
 
   getGroups: async (departmentId) => {
     try {
