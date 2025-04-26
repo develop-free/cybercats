@@ -28,19 +28,23 @@ const SettingsSection = () => {
           ProfileAPI.getProfile(),
           ProfileAPI.getDepartments()
         ]);
-        
+
+        if (!profileData || !departmentsData) {
+          throw new Error('Неверные данные ответа');
+        }
+
         setProfile({
           ...profileData,
           birthdate: profileData.birthDate || '',
           department: profileData.department?._id || '',
           group: profileData.group?._id || ''
         });
-        
+
         setDepartments(departmentsData);
         setError(null);
       } catch (err) {
-        console.error('Error fetching initial data:', err);
-        setError('Не удалось загрузить данные профиля');
+        console.error('Ошибка при получении данных:', err);
+        setError('Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.');
       } finally {
         setLoading(false);
       }
@@ -56,7 +60,7 @@ const SettingsSection = () => {
           const groupsData = await ProfileAPI.getGroups(profile.department);
           setGroups(groupsData);
         } catch (err) {
-          console.error('Error fetching groups:', err);
+          console.error('Ошибка при получении групп:', err);
           setGroups([]);
         }
       }
@@ -95,10 +99,10 @@ const SettingsSection = () => {
       };
 
       const response = await ProfileAPI.updateProfile(formData);
-      
+
       if (response.success) {
         alert('Профиль успешно сохранен!');
-        // Обновляем данные профиля после сохранения
+        // Обновление данных профиля после сохранения
         const updatedProfile = await ProfileAPI.getProfile();
         setProfile({
           ...updatedProfile,
@@ -110,7 +114,7 @@ const SettingsSection = () => {
         alert(response.message || 'Ошибка при сохранении профиля');
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('Ошибка при сохранении профиля:', error);
       alert('Произошла ошибка при сохранении профиля');
     }
   };
@@ -131,43 +135,43 @@ const SettingsSection = () => {
       <div className='center-form'>
         <form className="settings-form" onSubmit={handleSubmit}>
           <label htmlFor="lastName">Фамилия:</label>
-          <input 
-            type="text" 
-            id="lastName" 
-            value={profile.lastName} 
-            onChange={handleChange} 
-            required 
+          <input
+            type="text"
+            id="lastName"
+            value={profile.lastName}
+            onChange={handleChange}
+            required
           />
 
           <label htmlFor="firstName">Имя:</label>
-          <input 
-            type="text" 
-            id="firstName" 
-            value={profile.firstName} 
-            onChange={handleChange} 
-            required 
+          <input
+            type="text"
+            id="firstName"
+            value={profile.firstName}
+            onChange={handleChange}
+            required
           />
 
           <label htmlFor="middleName">Отчество:</label>
-          <input 
-            type="text" 
-            id="middleName" 
-            value={profile.middleName} 
-            onChange={handleChange} 
+          <input
+            type="text"
+            id="middleName"
+            value={profile.middleName}
+            onChange={handleChange}
           />
 
           <label htmlFor="birthdate">Дата рождения:</label>
-          <input 
-            type="date" 
-            id="birthdate" 
-            value={profile.birthdate} 
-            onChange={handleChange} 
+          <input
+            type="date"
+            id="birthdate"
+            value={profile.birthdate}
+            onChange={handleChange}
           />
 
           <label htmlFor="department">Отделение:</label>
-          <select 
-            id="department" 
-            value={profile.department} 
+          <select
+            id="department"
+            value={profile.department}
             onChange={handleChange}
           >
             <option value="">Выберите отделение</option>
@@ -177,9 +181,9 @@ const SettingsSection = () => {
           </select>
 
           <label htmlFor="group">Группа:</label>
-          <select 
-            id="group" 
-            value={profile.group} 
+          <select
+            id="group"
+            value={profile.group}
             onChange={handleChange}
             disabled={!profile.department}
           >
@@ -190,35 +194,35 @@ const SettingsSection = () => {
           </select>
 
           <label htmlFor="login">Логин:</label>
-          <input 
-            type="text" 
-            id="login" 
-            value={`${profile.firstName} ${profile.lastName}`} 
-            readOnly 
+          <input
+            type="text"
+            id="login"
+            value={`${profile.firstName} ${profile.lastName}`}
+            readOnly
           />
 
           <label htmlFor="email">Электронная почта:</label>
-          <input 
-            type="email" 
-            id="email" 
-            value={profile.email} 
-            onChange={handleChange} 
-            required 
+          <input
+            type="email"
+            id="email"
+            value={profile.email}
+            onChange={handleChange}
+            required
           />
 
           <label htmlFor="password">Новый пароль:</label>
-          <input 
-            type="password" 
-            id="password" 
-            placeholder="Введите новый пароль" 
+          <input
+            type="password"
+            id="password"
+            placeholder="Введите новый пароль"
           />
 
           <label htmlFor="avatar">Аватарка:</label>
-          <input 
-            type="file" 
-            id="avatar" 
-            accept="image/*" 
-            onChange={handleFileChange} 
+          <input
+            type="file"
+            id="avatar"
+            accept="image/*"
+            onChange={handleFileChange}
           />
 
           <button type="submit">Сохранить изменения</button>

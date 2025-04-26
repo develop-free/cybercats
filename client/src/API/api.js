@@ -19,25 +19,12 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => {
-    // Успешные ответы
-    if (response.data && response.data.success !== false) {
-      return response;
-    }
-    
-    // Ошибки от сервера
-    const error = new Error(response.data?.message || 'Ошибка сервера');
-    error.response = response;
-    throw error;
-  },
+  (response) => response,
   (error) => {
-    // Ошибки сети или сервера
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
       window.location.href = '/login?sessionExpired=true';
     }
-    
-    error.message = error.response?.data?.message || 'Ошибка сервера';
     return Promise.reject(error);
   }
 );
