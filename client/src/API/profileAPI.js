@@ -6,6 +6,23 @@ const ProfileAPI = {
       const response = await api.get('/students/profile');
       return response.data;
     } catch (error) {
+      if (error.response?.status === 404) {
+        // Если профиль не найден, возвращаем пустой профиль
+        return {
+          success: true,
+          isNewUser: true,
+          data: {
+            firstName: '',
+            lastName: '',
+            middleName: '',
+            birthDate: '',
+            department: null,
+            group: null,
+            email: '',
+            avatar: null
+          }
+        };
+      }
       console.error('Ошибка при получении профиля:', error);
       throw error;
     }
@@ -34,14 +51,13 @@ const ProfileAPI = {
 
   getDepartments: async () => {
     try {
-      const response = await api.get('/students/departments');
-      return response.data;
+      const response = await api.get('/departments');
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-      console.error('Ошибка при получении отделений:', error);
-      throw error;
+      console.error('Departments error:', error);
+      return [];
     }
   },
-  // mafia
 
   getGroups: async (departmentId) => {
     try {

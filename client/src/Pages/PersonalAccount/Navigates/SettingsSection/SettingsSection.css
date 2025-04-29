@@ -61,3 +61,16 @@
   .settings-form button:hover {
     background: #673ab7;
   }
+
+  .new-user-notice {
+    background-color: #f8f9fa;
+    border-left: 4px solid #ffc107;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+  }
+  
+  .new-user-notice p {
+    margin: 0;
+    color: #6c757d;
+  }
