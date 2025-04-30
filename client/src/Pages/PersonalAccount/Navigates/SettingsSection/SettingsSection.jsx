@@ -51,6 +51,7 @@ const SettingsSection = () => {
 
         // Установка состояний
         setProfile({
+          ...profileData,
           lastName: profileData.lastName || '',
           firstName: profileData.firstName || '',
           middleName: profileData.middleName || '',
@@ -101,6 +102,7 @@ const SettingsSection = () => {
 
     fetchGroups();
   }, [profile.department]);
+
 
   // Обработчики изменений
   const handleChange = (e) => {
@@ -242,8 +244,11 @@ const SettingsSection = () => {
               onChange={handleChange}
             >
               <option value="">Выберите отделение</option>
-              {departments.map(dept => (
-                <option key={dept._id} value={dept._id}>
+              {departments.filter(d => d._id).map(dept => (
+                <option 
+                  key={`dept-${dept._id}`} 
+                  value={dept._id}
+                >
                   {dept.name}
                 </option>
               ))}
@@ -251,18 +256,21 @@ const SettingsSection = () => {
 
             <label htmlFor="group">Группа</label>
             <select
-              id="group"
-              value={profile.group}
-              onChange={handleChange}
-              disabled={!profile.department}
-            >
-              <option value="">Выберите группу</option>
-              {groups.map(grp => (
-                <option key={grp._id} value={grp._id}>
+                id="group"
+                value={profile.group}
+                onChange={handleChange}
+                disabled={!profile.department}
+              >
+                <option value="">Выберите группу</option>
+                {groups.filter(g => g._id).map(grp => (
+                <option 
+                  key={`grp-${grp._id}`} 
+                  value={grp._id}
+                >
                   {grp.name}
                 </option>
               ))}
-            </select>
+              </select>
           </div>
 
           {/* Учетные данные */}

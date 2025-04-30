@@ -1,5 +1,6 @@
 import api from './api';
 
+
 const ProfileAPI = {
   getProfile: async () => {
     try {
@@ -7,7 +8,6 @@ const ProfileAPI = {
       return response.data;
     } catch (error) {
       if (error.response?.status === 404) {
-        // Если профиль не найден, возвращаем пустой профиль
         return {
           success: true,
           isNewUser: true,
@@ -51,8 +51,8 @@ const ProfileAPI = {
 
   getDepartments: async () => {
     try {
-      const response = await api.get('/departments');
-      return Array.isArray(response.data) ? response.data : [];
+      const response = await api.get('/students/departments/all');
+      return response.data?.data || response.data || [];
     } catch (error) {
       console.error('Departments error:', error);
       return [];
@@ -61,13 +61,22 @@ const ProfileAPI = {
 
   getGroups: async (departmentId) => {
     try {
-      const response = await api.get(`/students/groups/${departmentId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Ошибка при получении групп:', error);
-      throw error;
+      // Проверяем, что departmentId - валидный ID
+      if (!departmentId || typeof departmentId !== 'string') {
+        return [];
+      }
+  
+      // Используем encodeURIComponent для кодирования departmentId
+      const response = await api.get(`/students/groups/${encodeURIComponent(departmentId)}`);
+  
+      // Возвращаем данные или пустой массив, если данных нет
+      return response.data?.data || response.data || [];
+    } catch (err) {
+      console.error('Ошибка при получении групп:', err);
+      return [];
     }
   },
+  
 
   updateAvatar: async (file) => {
     try {
