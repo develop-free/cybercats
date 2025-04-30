@@ -240,11 +240,11 @@ const SettingsSection = () => {
             <label htmlFor="department">Отделение</label>
             <select
               id="department"
-              value={profile.department}
+              value={profile.department || ''}
               onChange={handleChange}
             >
               <option value="">Выберите отделение</option>
-              {departments.filter(d => d._id).map(dept => (
+              {departments.map(dept => (
                 <option 
                   key={`dept-${dept._id}`} 
                   value={dept._id}
@@ -256,13 +256,13 @@ const SettingsSection = () => {
 
             <label htmlFor="group">Группа</label>
             <select
-                id="group"
-                value={profile.group}
-                onChange={handleChange}
-                disabled={!profile.department}
-              >
-                <option value="">Выберите группу</option>
-                {groups.filter(g => g._id).map(grp => (
+              id="group"
+              value={profile.group || ''}
+              onChange={handleChange}
+              disabled={!profile.department || groups.length === 0}
+            >
+              <option value="">Выберите группу</option>
+              {groups.map(grp => (
                 <option 
                   key={`grp-${grp._id}`} 
                   value={grp._id}
@@ -270,7 +270,7 @@ const SettingsSection = () => {
                   {grp.name}
                 </option>
               ))}
-              </select>
+            </select>
           </div>
 
           {/* Учетные данные */}

@@ -31,21 +31,79 @@ const ProfileAPI = {
   updateProfile: async (profileData) => {
     try {
       const formData = new FormData();
-      Object.entries(profileData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          formData.append(key, value);
+  
+      // Добавляем обязательные текстовые поля
+      formData.append('firstName', profileData.firstName || '');
+      formData.append('lastName', profileData.lastName || '');
+      
+      // Добавляем необязательные текстовые поля
+      if (profileData.middleName) formData.append('middleName', profileData.middleName);
+      if (profileData.birthdate) formData.append('birthDate', profileData.birthdate);
+      if (profileData.department) formData.append('department', profileData.department);
+      if (profileData.group) formData.append('group', profileData.group);
+      if (profileData.email) formData.append('email', profileData.email);
+  
+      // Добавляем пароль, если он указан (для нового пользователя)
+      if (profileData.password) {
+        formData.append('password', profileData.password);
+      }
+  
+      // Обработка аватара (может быть File или строкой с URL)
+      if (profileData.avatar) {
+        if (profileData.avatar instanceof File) {
+          // Новый загруженный файл
+          formData.append('avatar', profileData.avatar);
+        } else if (typeof profileData.avatar === 'string' && profileData.avatar.startsWith('blob:')) {
+          // Если это blob-ссылка (превью), не отправляем
+          console.warn('Blob URL не будет отправлен на сервер');
         }
-      });
-
-      const response = await api.put('/students/profile', formData, {
+        // Существующий URL аватара не требует обработки
+      }
+  
+      // Настройка заголовков для FormData
+      const config = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-      });
-      return response.data;
+        transformRequest: (data) => data, // Отключаем автоматическое преобразование
+      };
+  
+      // Отправка запроса
+      const response = await api.put('/students/profile', formData, config);
+  
+      // Проверка успешного ответа
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Ошибка при обновлении профиля');
+      }
+  
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message || 'Профиль успешно обновлен'
+      };
+  
     } catch (error) {
       console.error('Ошибка при обновлении профиля:', error);
-      throw error;
+      
+      // Форматируем ошибку для удобства обработки
+      const errorResponse = {
+        success: false,
+        message: error.response?.data?.message || 
+                 error.message || 
+                 'Произошла ошибка при обновлении профиля',
+        status: error.response?.status,
+        data: error.response?.data
+      };
+  
+      // Можно добавить дополнительную обработку для разных статусов
+      if (error.response?.status === 401) {
+        errorResponse.message = 'Требуется авторизация';
+      } else if (error.response?.status === 400) {
+        errorResponse.message = 'Некорректные данные: ' + 
+          (error.response.data?.errors?.join(', ') || errorResponse.message);
+      }
+  
+      throw errorResponse;
     }
   },
 
