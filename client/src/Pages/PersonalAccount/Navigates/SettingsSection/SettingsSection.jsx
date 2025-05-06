@@ -3,7 +3,6 @@ import './SettingsSection.css';
 import ProfileAPI from '../../../../API/profileAPI';
 
 const SettingsSection = () => {
-  // Состояние профиля пользователя
   const [profile, setProfile] = useState({
     lastName: '',
     firstName: '',
@@ -14,9 +13,9 @@ const SettingsSection = () => {
     login: '',
     email: '',
     avatar: null,
+    admissionYear: new Date().getFullYear(),
   });
 
-  // Состояния для данных и загрузки
   const [departments, setDepartments] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,32 +23,31 @@ const SettingsSection = () => {
   const [isNewUser, setIsNewUser] = useState(false);
   const [password, setPassword] = useState('');
 
-  // Загрузка данных профиля и отделений
+  const validateName = (name) => {
+    return /^[\u0400-\u04FFa-zA-Z\s-]+$/u.test(name);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        // Параллельная загрузка профиля и отделений
+
         const [profileResponse, departmentsResponse] = await Promise.all([
           ProfileAPI.getProfile().catch(e => ({ isNewUser: true, data: null })),
           ProfileAPI.getDepartments().catch(() => [])
         ]);
 
-        // Нормализация данных отделений
-        const normalizedDepartments = Array.isArray(departmentsResponse?.data) 
-          ? departmentsResponse.data 
+        const normalizedDepartments = Array.isArray(departmentsResponse?.data)
+          ? departmentsResponse.data
           : Array.isArray(departmentsResponse)
             ? departmentsResponse
             : [];
 
-        // Обработка данных профиля
         const profileData = profileResponse?.data || profileResponse || {};
-        const isEmptyProfile = !profileData || 
+        const isEmptyProfile = !profileData ||
           (!profileData.firstName && !profileData.lastName && !profileData.email);
 
-        // Установка состояний
         setProfile({
           ...profileData,
           lastName: profileData.lastName || '',
@@ -59,8 +57,9 @@ const SettingsSection = () => {
           department: profileData.department?._id || '',
           group: profileData.group?._id || '',
           login: profileData.login || '',
-          email: profileData.email || '',
+          email: profileData.email || profileData.user?.email || '',
           avatar: profileData.avatar || null,
+          admissionYear: profileData.admissionYear || new Date().getFullYear(),
         });
 
         setIsNewUser(isEmptyProfile);
@@ -77,7 +76,6 @@ const SettingsSection = () => {
     fetchData();
   }, []);
 
-  // Загрузка групп при изменении отделения
   useEffect(() => {
     const fetchGroups = async () => {
       if (!profile.department) {
@@ -87,12 +85,12 @@ const SettingsSection = () => {
 
       try {
         const groupsResponse = await ProfileAPI.getGroups(profile.department);
-        const normalizedGroups = Array.isArray(groupsResponse?.data) 
-          ? groupsResponse.data 
+        const normalizedGroups = Array.isArray(groupsResponse?.data)
+          ? groupsResponse.data
           : Array.isArray(groupsResponse)
             ? groupsResponse
             : [];
-        
+
         setGroups(normalizedGroups);
       } catch (err) {
         console.error('Ошибка при получении групп:', err);
@@ -103,10 +101,15 @@ const SettingsSection = () => {
     fetchGroups();
   }, [profile.department]);
 
-
-  // Обработчики изменений
   const handleChange = (e) => {
     const { id, value } = e.target;
+
+    if (['lastName', 'firstName', 'middleName'].includes(id)) {
+      if (value && !validateName(value)) {
+        return;
+      }
+    }
+
     setProfile(prev => ({ ...prev, [id]: value }));
   };
 
@@ -118,38 +121,39 @@ const SettingsSection = () => {
     setProfile(prev => ({ ...prev, avatar: e.target.files[0] }));
   };
 
-  // Отправка формы
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      
-      // Добавляем все поля профиля
+
       Object.entries(profile).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
+        if (value !== null && value !== undefined && key !== 'avatar') {
           formData.append(key, value);
         }
       });
 
-      // Для нового пользователя добавляем пароль
       if (isNewUser && password) {
         formData.append('password', password);
       }
 
-      // Отправка данных
+      if (profile.avatar instanceof File) {
+        formData.append('avatar', profile.avatar);
+      }
+
       const response = await ProfileAPI.updateProfile(formData);
 
       if (response?.success) {
         alert(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранен!');
-        
-        // Обновление данных после сохранения
+
         const updatedProfile = await ProfileAPI.getProfile();
         if (updatedProfile?.data) {
           setProfile({
             ...updatedProfile.data,
             birthdate: updatedProfile.data.birthDate?.split('T')[0] || '',
             department: updatedProfile.data.department?._id || '',
-            group: updatedProfile.data.group?._id || ''
+            group: updatedProfile.data.group?._id || '',
+            admissionYear: updatedProfile.data.admissionYear || new Date().getFullYear(),
+            email: updatedProfile.data.email || updatedProfile.data.user?.email || ''
           });
           setIsNewUser(false);
         }
@@ -158,11 +162,14 @@ const SettingsSection = () => {
       }
     } catch (error) {
       console.error('Ошибка при сохранении профиля:', error);
-      alert('Произошла ошибка при сохранении профиля');
+      alert(
+        error.validationErrors 
+          ? error.validationErrors.join('\n')
+          : error.message || 'Произошла ошибка при сохранении профиля'
+      );
     }
   };
 
-  // Отображение состояния загрузки
   if (loading) {
     return (
       <div className="section loading">
@@ -172,7 +179,6 @@ const SettingsSection = () => {
     );
   }
 
-  // Отображение ошибки
   if (error) {
     return (
       <div className="section error">
@@ -182,7 +188,6 @@ const SettingsSection = () => {
     );
   }
 
-  // Основной рендеринг формы
   return (
     <div className="section" id="settings-section">
       <div className="heading-fixed">
@@ -193,10 +198,9 @@ const SettingsSection = () => {
           </div>
         )}
       </div>
-      
+
       <div className='center-form'>
         <form className="settings-form" onSubmit={handleSubmit}>
-          {/* Личные данные */}
           <div className="form-section">
             <h3>Личные данные</h3>
             <label htmlFor="lastName">Фамилия *</label>
@@ -206,6 +210,8 @@ const SettingsSection = () => {
               value={profile.lastName}
               onChange={handleChange}
               required
+              pattern="[\u0400-\u04FFa-zA-Z\s-]+"
+              title="Только буквы и дефисы"
             />
 
             <label htmlFor="firstName">Имя *</label>
@@ -215,6 +221,8 @@ const SettingsSection = () => {
               value={profile.firstName}
               onChange={handleChange}
               required
+              pattern="[\u0400-\u04FFa-zA-Z\s-]+"
+              title="Только буквы и дефисы"
             />
 
             <label htmlFor="middleName">Отчество</label>
@@ -223,6 +231,8 @@ const SettingsSection = () => {
               id="middleName"
               value={profile.middleName}
               onChange={handleChange}
+              pattern="[\u0400-\u04FFa-zA-Z\s-]*"
+              title="Только буквы и дефисы"
             />
 
             <label htmlFor="birthdate">Дата рождения</label>
@@ -234,9 +244,19 @@ const SettingsSection = () => {
             />
           </div>
 
-          {/* Учебная информация */}
           <div className="form-section">
             <h3>Учебная информация</h3>
+            <label htmlFor="admissionYear">Год поступления *</label>
+            <input
+              type="number"
+              id="admissionYear"
+              min="2000"
+              max={new Date().getFullYear()}
+              value={profile.admissionYear}
+              onChange={handleChange}
+              required
+            />
+
             <label htmlFor="department">Отделение</label>
             <select
               id="department"
@@ -245,10 +265,7 @@ const SettingsSection = () => {
             >
               <option value="">Выберите отделение</option>
               {departments.map(dept => (
-                <option 
-                  key={`dept-${dept._id}`} 
-                  value={dept._id}
-                >
+                <option key={`dept-${dept._id}`} value={dept._id}>
                   {dept.name}
                 </option>
               ))}
@@ -263,17 +280,13 @@ const SettingsSection = () => {
             >
               <option value="">Выберите группу</option>
               {groups.map(grp => (
-                <option 
-                  key={`grp-${grp._id}`} 
-                  value={grp._id}
-                >
+                <option key={`grp-${grp._id}`} value={grp._id}>
                   {grp.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Учетные данные */}
           <div className="form-section">
             <h3>Учетные данные</h3>
             <label htmlFor="email">Электронная почта *</label>
@@ -283,6 +296,7 @@ const SettingsSection = () => {
               value={profile.email}
               onChange={handleChange}
               required
+              readOnly={!isNewUser}
             />
 
             <label htmlFor="password">
@@ -298,7 +312,6 @@ const SettingsSection = () => {
             />
           </div>
 
-          {/* Аватар */}
           <div className="form-section">
             <h3>Аватар</h3>
             <label htmlFor="avatar">Загрузить изображение</label>
@@ -310,9 +323,9 @@ const SettingsSection = () => {
             />
             {profile.avatar && typeof profile.avatar === 'string' && (
               <div className="avatar-preview">
-                <img 
-                  src={profile.avatar} 
-                  alt="Текущий аватар" 
+                <img
+                  src={profile.avatar}
+                  alt="Текущий аватар"
                   onError={(e) => e.target.style.display = 'none'}
                 />
               </div>
