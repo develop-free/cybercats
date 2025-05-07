@@ -24,7 +24,7 @@ const ProfileAPI = {
         };
       }
       console.error('Ошибка при получении профиля:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Ошибка при получении профиля');
     }
   },
 
@@ -38,10 +38,11 @@ const ProfileAPI = {
       return response.data;
     } catch (error) {
       console.error('Ошибка при обновлении профиля:', error);
-      throw {
-        message: error.response?.data?.message || 'Ошибка сервера',
-        validationErrors: error.response?.data?.errors
-      };
+      const err = new Error(error.response?.data?.message || 'Ошибка сервера');
+      if (error.response?.data?.errors) {
+        err.validationErrors = error.response.data.errors;
+      }
+      throw err;
     }
   },
 
@@ -82,7 +83,7 @@ const ProfileAPI = {
       return response.data;
     } catch (error) {
       console.error('Ошибка при обновлении аватара:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Ошибка при обновлении аватара');
     }
   }
 };

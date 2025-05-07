@@ -24,7 +24,7 @@ const SettingsSection = () => {
   const [password, setPassword] = useState('');
 
   const validateName = (name) => {
-    return /^[\u0400-\u04FFa-zA-Z\s-]+$/u.test(name);
+    return /^[А-Яа-яЁёA-Za-z\s-]+$/u.test(name);
   };
 
   useEffect(() => {
@@ -125,12 +125,16 @@ const SettingsSection = () => {
     e.preventDefault();
     try {
       const formData = new FormData();
-
-      Object.entries(profile).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && key !== 'avatar') {
-          formData.append(key, value);
-        }
-      });
+      
+      // Добавляем только заполненные поля
+      if (profile.lastName) formData.append('lastName', profile.lastName);
+      if (profile.firstName) formData.append('firstName', profile.firstName);
+      if (profile.middleName) formData.append('middleName', profile.middleName);
+      if (profile.birthdate) formData.append('birthDate', profile.birthdate);
+      if (profile.department) formData.append('department', profile.department);
+      if (profile.group) formData.append('group', profile.group);
+      if (profile.email) formData.append('email', profile.email);
+      if (profile.admissionYear) formData.append('admissionYear', profile.admissionYear);
 
       if (isNewUser && password) {
         formData.append('password', password);
@@ -210,7 +214,7 @@ const SettingsSection = () => {
               value={profile.lastName}
               onChange={handleChange}
               required
-              pattern="[\u0400-\u04FFa-zA-Z\s-]+"
+              pattern="[А-Яа-яЁёA-Za-z\s-]+"
               title="Только буквы и дефисы"
             />
 
@@ -221,7 +225,7 @@ const SettingsSection = () => {
               value={profile.firstName}
               onChange={handleChange}
               required
-              pattern="[\u0400-\u04FFa-zA-Z\s-]+"
+              pattern="[А-Яа-яЁёA-Za-z\s-]+"
               title="Только буквы и дефисы"
             />
 
@@ -231,7 +235,7 @@ const SettingsSection = () => {
               id="middleName"
               value={profile.middleName}
               onChange={handleChange}
-              pattern="[\u0400-\u04FFa-zA-Z\s-]*"
+              pattern="[А-Яа-яЁёA-Za-z\s-]*"
               title="Только буквы и дефисы"
             />
 
