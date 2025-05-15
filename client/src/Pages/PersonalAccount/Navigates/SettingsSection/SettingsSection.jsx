@@ -48,7 +48,7 @@ const SettingsSection = () => {
           ProfileAPI.getDepartments().catch(() => []),
         ]);
 
-        console.log('Profile response:', profileResponse);
+        console.log('Ответ профиля:', profileResponse);
 
         setDepartments(
           Array.isArray(departmentsResponse?.data)
@@ -75,7 +75,7 @@ const SettingsSection = () => {
         });
 
         setIsNewUser(isNewUserResponse);
-        console.log('isNewUser after fetch:', isNewUserResponse);
+        console.log('isNewUser после получения:', isNewUserResponse);
       } catch (err) {
         console.error('Ошибка при получении данных:', err);
         setError('Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.');
@@ -159,8 +159,8 @@ const SettingsSection = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Submitting form, isNewUser:', isNewUser);
-    console.log('Profile data:', profile);
+    console.log('Отправка формы, isNewUser:', isNewUser);
+    console.log('Данные профиля:', profile);
 
     try {
       const requiredFields = [
@@ -239,7 +239,7 @@ const SettingsSection = () => {
           ? ProfileAPI.createProfile(formData)
           : ProfileAPI.updateProfile(formData));
       } catch (error) {
-        if (error.response?.status === 404) {
+        if (error.response?.status === 404 && !isNewUser) {
           console.log('Профиль не найден, пытаемся создать через POST');
           response = await ProfileAPI.createProfile(formData);
         } else {
@@ -248,7 +248,7 @@ const SettingsSection = () => {
       }
 
       if (response?.success) {
-        toast.success(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранен!');
+        toast.success(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранён!');
 
         const updatedProfile = await ProfileAPI.getProfile();
         if (updatedProfile?.data) {
@@ -271,6 +271,8 @@ const SettingsSection = () => {
             newPassword: '',
             confirmPassword: '',
           });
+          // Сбрасываем аватар, чтобы избежать повторной загрузки того же файла
+          setProfile((prev) => ({ ...prev, avatar: updatedProfile.data.avatar || null }));
         }
       } else {
         toast.error(response?.message || 'Ошибка при сохранении профиля');
@@ -403,7 +405,7 @@ const SettingsSection = () => {
           </div>
 
           <div className="form-section">
-            <h3>Учетные данные</h3>
+            <h3>Учётные данные</h3>
             <label htmlFor="login">Логин *</label>
             <input
               type="text"

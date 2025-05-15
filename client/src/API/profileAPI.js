@@ -120,7 +120,7 @@ const ProfileAPI = {
       throw new Error(
         error.response?.data?.message ||
           error.message ||
-          'Ошибка при обновления аватара'
+          'Ошибка при обновлении аватара'
       );
     }
   },
