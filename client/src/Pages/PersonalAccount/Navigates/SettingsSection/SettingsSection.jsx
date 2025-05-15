@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './SettingsSection.css';
 import ProfileAPI from '../../../../API/profileAPI';
 
 const SettingsSection = () => {
   const [profile, setProfile] = useState({
-    lastName: '',
-    firstName: '',
-    middleName: '',
-    birthdate: '',
-    department: '',
-    group: '',
+    last_name: '',
+    first_name: '',
+    middle_name: '',
+    birth_date: '',
+    department_id: '',
+    group_id: '',
     login: '',
     email: '',
     avatar: null,
-    admissionYear: new Date().getFullYear(),
+    admission_year: new Date().getFullYear(),
   });
 
   const [departments, setDepartments] = useState([]);
@@ -21,10 +23,18 @@ const SettingsSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNewUser, setIsNewUser] = useState(false);
-  const [password, setPassword] = useState('');
+  const [passwords, setPasswords] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   const validateName = (name) => {
-    return /^[А-Яа-яЁёA-Za-z\s-]+$/u.test(name);
+    return /^[A-Za-zА-Яа-яЁё\s-]+$/.test(name);
+  };
+
+  const validateLogin = (login) => {
+    return /^[A-Za-z0-9_-]{3,50}$/.test(login);
   };
 
   useEffect(() => {
@@ -34,36 +44,38 @@ const SettingsSection = () => {
         setError(null);
 
         const [profileResponse, departmentsResponse] = await Promise.all([
-          ProfileAPI.getProfile().catch(e => ({ isNewUser: true, data: null })),
-          ProfileAPI.getDepartments().catch(() => [])
+          ProfileAPI.getProfile().catch((e) => ({ isNewUser: true, data: null })),
+          ProfileAPI.getDepartments().catch(() => []),
         ]);
 
-        const normalizedDepartments = Array.isArray(departmentsResponse?.data)
-          ? departmentsResponse.data
-          : Array.isArray(departmentsResponse)
-            ? departmentsResponse
-            : [];
+        console.log('Profile response:', profileResponse);
 
-        const profileData = profileResponse?.data || profileResponse || {};
-        const isEmptyProfile = !profileData ||
-          (!profileData.firstName && !profileData.lastName && !profileData.email);
+        setDepartments(
+          Array.isArray(departmentsResponse?.data)
+            ? departmentsResponse.data
+            : Array.isArray(departmentsResponse)
+              ? departmentsResponse
+              : []
+        );
+
+        const profileData = profileResponse?.data || {};
+        const isNewUserResponse = profileResponse?.isNewUser || false;
 
         setProfile({
-          ...profileData,
-          lastName: profileData.lastName || '',
-          firstName: profileData.firstName || '',
-          middleName: profileData.middleName || '',
-          birthdate: profileData.birthDate?.split('T')[0] || '',
-          department: profileData.department?._id || '',
-          group: profileData.group?._id || '',
+          last_name: profileData.last_name || '',
+          first_name: profileData.first_name || '',
+          middle_name: profileData.middle_name || '',
+          birth_date: profileData.birth_date?.split('T')[0] || '',
+          department_id: profileData.department_id?._id || '',
+          group_id: profileData.group_id?._id || '',
           login: profileData.login || '',
-          email: profileData.email || profileData.user?.email || '',
+          email: profileData.email || '',
           avatar: profileData.avatar || null,
-          admissionYear: profileData.admissionYear || new Date().getFullYear(),
+          admission_year: profileData.admission_year || new Date().getFullYear(),
         });
 
-        setIsNewUser(isEmptyProfile);
-        setDepartments(normalizedDepartments);
+        setIsNewUser(isNewUserResponse);
+        console.log('isNewUser after fetch:', isNewUserResponse);
       } catch (err) {
         console.error('Ошибка при получении данных:', err);
         setError('Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.');
@@ -78,13 +90,13 @@ const SettingsSection = () => {
 
   useEffect(() => {
     const fetchGroups = async () => {
-      if (!profile.department) {
+      if (!profile.department_id) {
         setGroups([]);
         return;
       }
 
       try {
-        const groupsResponse = await ProfileAPI.getGroups(profile.department);
+        const groupsResponse = await ProfileAPI.getGroups(profile.department_id);
         const normalizedGroups = Array.isArray(groupsResponse?.data)
           ? groupsResponse.data
           : Array.isArray(groupsResponse)
@@ -99,78 +111,177 @@ const SettingsSection = () => {
     };
 
     fetchGroups();
-  }, [profile.department]);
+  }, [profile.department_id]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
 
-    if (['lastName', 'firstName', 'middleName'].includes(id)) {
+    if (['last_name', 'first_name'].includes(id)) {
       if (value && !validateName(value)) {
+        toast.error(`Поле "${id === 'last_name' ? 'Фамилия' : 'Имя'}" должно содержать только буквы, пробелы и дефисы`);
         return;
       }
     }
 
-    setProfile(prev => ({ ...prev, [id]: value }));
+    if (id === 'middle_name') {
+      if (value && !/^[A-Za-zА-Яа-яЁё\s-]*$/.test(value)) {
+        toast.error('Поле "Отчество" должно содержать только буквы, пробелы и дефисы');
+        return;
+      }
+    }
+
+    if (id === 'login') {
+      if (value && !validateLogin(value)) {
+        toast.error('Логин должен содержать 3-50 символов (буквы, цифры, _, -)');
+        return;
+      }
+    }
+
+    if (id === 'admission_year') {
+      const year = parseInt(value, 10);
+      if (value && (year < 2000 || year > new Date().getFullYear())) {
+        toast.error(`Год поступления должен быть между 2000 и ${new Date().getFullYear()}`);
+        return;
+      }
+    }
+
+    setProfile((prev) => ({ ...prev, [id]: value }));
   };
 
   const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
+    const { id, value } = e.target;
+    setPasswords((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleFileChange = (e) => {
-    setProfile(prev => ({ ...prev, avatar: e.target.files[0] }));
+    setProfile((prev) => ({ ...prev, avatar: e.target.files[0] }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const formData = new FormData();
-      
-      // Добавляем только заполненные поля
-      if (profile.lastName) formData.append('lastName', profile.lastName);
-      if (profile.firstName) formData.append('firstName', profile.firstName);
-      if (profile.middleName) formData.append('middleName', profile.middleName);
-      if (profile.birthdate) formData.append('birthDate', profile.birthdate);
-      if (profile.department) formData.append('department', profile.department);
-      if (profile.group) formData.append('group', profile.group);
-      if (profile.email) formData.append('email', profile.email);
-      if (profile.admissionYear) formData.append('admissionYear', profile.admissionYear);
+    console.log('Submitting form, isNewUser:', isNewUser);
+    console.log('Profile data:', profile);
 
-      if (isNewUser && password) {
-        formData.append('password', password);
+    try {
+      const requiredFields = [
+        { key: 'first_name', label: 'Имя' },
+        { key: 'last_name', label: 'Фамилия' },
+        { key: 'birth_date', label: 'Дата рождения' },
+        { key: 'department_id', label: 'Отделение' },
+        { key: 'group_id', label: 'Группа' },
+        { key: 'login', label: 'Логин' },
+        { key: 'email', label: 'Электронная почта' },
+        { key: 'admission_year', label: 'Год поступления' },
+      ];
+
+      let hasErrors = false;
+      requiredFields.forEach(({ key, label }) => {
+        if (!profile[key] || profile[key].toString().trim() === '') {
+          toast.error(`Поле "${label}" обязательно для заполнения`);
+          hasErrors = true;
+        }
+      });
+
+      if (hasErrors) return;
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(profile.email)) {
+        toast.error('Пожалуйста, введите корректный адрес электронной почты');
+        return;
+      }
+
+      if (!validateLogin(profile.login)) {
+        toast.error('Логин должен содержать 3-50 символов (буквы, цифры, _, -)');
+        return;
+      }
+
+      const year = parseInt(profile.admission_year, 10);
+      if (year < 2000 || year > new Date().getFullYear()) {
+        toast.error(`Год поступления должен быть между 2000 и ${new Date().getFullYear()}`);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('last_name', profile.last_name);
+      formData.append('first_name', profile.first_name);
+      formData.append('middle_name', profile.middle_name || '');
+      formData.append('birth_date', profile.birth_date);
+      formData.append('department_id', profile.department_id);
+      formData.append('group_id', profile.group_id);
+      formData.append('login', profile.login);
+      formData.append('email', profile.email);
+      formData.append('admission_year', profile.admission_year);
+
+      for (let [key, value] of formData.entries()) {
+        console.log(`FormData: ${key} = ${value}`);
+      }
+
+      if (
+        passwords.oldPassword &&
+        passwords.newPassword &&
+        passwords.confirmPassword
+      ) {
+        if (passwords.newPassword !== passwords.confirmPassword) {
+          toast.error('Новый пароль и подтверждение пароля не совпадают');
+          return;
+        }
+        formData.append('oldPassword', passwords.oldPassword);
+        formData.append('newPassword', passwords.newPassword);
       }
 
       if (profile.avatar instanceof File) {
         formData.append('avatar', profile.avatar);
       }
 
-      const response = await ProfileAPI.updateProfile(formData);
+      let response;
+      try {
+        response = await (isNewUser
+          ? ProfileAPI.createProfile(formData)
+          : ProfileAPI.updateProfile(formData));
+      } catch (error) {
+        if (error.response?.status === 404) {
+          console.log('Профиль не найден, пытаемся создать через POST');
+          response = await ProfileAPI.createProfile(formData);
+        } else {
+          throw error;
+        }
+      }
 
       if (response?.success) {
-        alert(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранен!');
+        toast.success(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранен!');
 
         const updatedProfile = await ProfileAPI.getProfile();
         if (updatedProfile?.data) {
           setProfile({
-            ...updatedProfile.data,
-            birthdate: updatedProfile.data.birthDate?.split('T')[0] || '',
-            department: updatedProfile.data.department?._id || '',
-            group: updatedProfile.data.group?._id || '',
-            admissionYear: updatedProfile.data.admissionYear || new Date().getFullYear(),
-            email: updatedProfile.data.email || updatedProfile.data.user?.email || ''
+            last_name: updatedProfile.data.last_name || '',
+            first_name: updatedProfile.data.first_name || '',
+            middle_name: updatedProfile.data.middle_name || '',
+            birth_date: updatedProfile.data.birth_date?.split('T')[0] || '',
+            department_id: updatedProfile.data.department_id?._id || '',
+            group_id: updatedProfile.data.group_id?._id || '',
+            login: updatedProfile.data.login || '',
+            email: updatedProfile.data.email || '',
+            avatar: updatedProfile.data.avatar || null,
+            admission_year:
+              updatedProfile.data.admission_year || new Date().getFullYear(),
           });
           setIsNewUser(false);
+          setPasswords({
+            oldPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+          });
         }
       } else {
-        alert(response?.message || 'Ошибка при сохранении профиля');
+        toast.error(response?.message || 'Ошибка при сохранении профиля');
       }
     } catch (error) {
       console.error('Ошибка при сохранении профиля:', error);
-      alert(
-        error.validationErrors 
-          ? error.validationErrors.join('\n')
-          : error.message || 'Произошла ошибка при сохранении профиля'
-      );
+      const errorMessage = error.response?.data?.errors?.join('; ') ||
+                          error.response?.data?.message ||
+                          error.message ||
+                          'Произошла ошибка при сохранении профиля';
+      toast.error(errorMessage);
     }
   };
 
@@ -187,103 +298,103 @@ const SettingsSection = () => {
     return (
       <div className="section error">
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Обновить страницу</button>
+        <button onClick={() => window.location.reload()}>
+          Обновить страницу
+        </button>
       </div>
     );
   }
 
   return (
     <div className="section" id="settings-section">
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className="heading-fixed">
         <h2>{isNewUser ? 'Заполните ваш профиль' : 'Настройки профиля'}</h2>
         {isNewUser && (
           <div className="new-user-notice">
-            <p>Пожалуйста, заполните обязательную информацию о себе, чтобы продолжить использование сервиса.</p>
+            <p>
+              Пожалуйста, заполните обязательную информацию о себе, чтобы
+              продолжить использование сервиса.
+            </p>
           </div>
         )}
       </div>
 
-      <div className='center-form'>
+      <div className="center-form">
         <form className="settings-form" onSubmit={handleSubmit}>
           <div className="form-section">
             <h3>Личные данные</h3>
-            <label htmlFor="lastName">Фамилия *</label>
+            <label htmlFor="last_name">Фамилия *</label>
             <input
               type="text"
-              id="lastName"
-              value={profile.lastName}
+              id="last_name"
+              value={profile.last_name}
               onChange={handleChange}
-              required
-              pattern="[А-Яа-яЁёA-Za-z\s-]+"
-              title="Только буквы и дефисы"
+              title="Только буквы, пробелы и дефисы"
             />
 
-            <label htmlFor="firstName">Имя *</label>
+            <label htmlFor="first_name">Имя *</label>
             <input
               type="text"
-              id="firstName"
-              value={profile.firstName}
+              id="first_name"
+              value={profile.first_name}
               onChange={handleChange}
-              required
-              pattern="[А-Яа-яЁёA-Za-z\s-]+"
-              title="Только буквы и дефисы"
+              title="Только буквы, пробелы и дефисы"
             />
 
-            <label htmlFor="middleName">Отчество</label>
+            <label htmlFor="middle_name">Отчество</label>
             <input
               type="text"
-              id="middleName"
-              value={profile.middleName}
+              id="middle_name"
+              value={profile.middle_name}
               onChange={handleChange}
-              pattern="[А-Яа-яЁёA-Za-z\s-]*"
-              title="Только буквы и дефисы"
+              title="Только буквы, пробелы и дефисы (необязательно)"
             />
 
-            <label htmlFor="birthdate">Дата рождения</label>
+            <label htmlFor="birth_date">Дата рождения *</label>
             <input
               type="date"
-              id="birthdate"
-              value={profile.birthdate}
+              id="birth_date"
+              value={profile.birth_date}
               onChange={handleChange}
             />
           </div>
 
           <div className="form-section">
             <h3>Учебная информация</h3>
-            <label htmlFor="admissionYear">Год поступления *</label>
+            <label htmlFor="admission_year">Год поступления *</label>
             <input
               type="number"
-              id="admissionYear"
+              id="admission_year"
               min="2000"
               max={new Date().getFullYear()}
-              value={profile.admissionYear}
+              value={profile.admission_year}
               onChange={handleChange}
-              required
             />
 
-            <label htmlFor="department">Отделение</label>
+            <label htmlFor="department_id">Отделение *</label>
             <select
-              id="department"
-              value={profile.department || ''}
+              id="department_id"
+              value={profile.department_id || ''}
               onChange={handleChange}
             >
               <option value="">Выберите отделение</option>
-              {departments.map(dept => (
+              {departments.map((dept) => (
                 <option key={`dept-${dept._id}`} value={dept._id}>
                   {dept.name}
                 </option>
               ))}
             </select>
 
-            <label htmlFor="group">Группа</label>
+            <label htmlFor="group_id">Группа *</label>
             <select
-              id="group"
-              value={profile.group || ''}
+              id="group_id"
+              value={profile.group_id || ''}
               onChange={handleChange}
-              disabled={!profile.department || groups.length === 0}
+              disabled={!profile.department_id || groups.length === 0}
             >
               <option value="">Выберите группу</option>
-              {groups.map(grp => (
+              {groups.map((grp) => (
                 <option key={`grp-${grp._id}`} value={grp._id}>
                   {grp.name}
                 </option>
@@ -293,26 +404,50 @@ const SettingsSection = () => {
 
           <div className="form-section">
             <h3>Учетные данные</h3>
+            <label htmlFor="login">Логин *</label>
+            <input
+              type="text"
+              id="login"
+              value={profile.login}
+              onChange={handleChange}
+              title="Логин должен содержать 3-50 символов (буквы, цифры, _, -)"
+              placeholder="Введите логин"
+            />
+
             <label htmlFor="email">Электронная почта *</label>
             <input
               type="email"
               id="email"
               value={profile.email}
               onChange={handleChange}
-              required
-              readOnly={!isNewUser}
+              placeholder="Введите email"
             />
 
-            <label htmlFor="password">
-              {isNewUser ? 'Пароль *' : 'Новый пароль'}
-            </label>
+            <label htmlFor="oldPassword">Старый пароль</label>
             <input
               type="password"
-              id="password"
-              value={password}
+              id="oldPassword"
+              value={passwords.oldPassword}
               onChange={handlePasswordChange}
-              placeholder={isNewUser ? 'Введите пароль' : 'Оставьте пустым, если не нужно менять'}
-              required={isNewUser}
+              placeholder="Введите старый пароль"
+            />
+
+            <label htmlFor="newPassword">Новый пароль</label>
+            <input
+              type="password"
+              id="newPassword"
+              value={passwords.newPassword}
+              onChange={handlePasswordChange}
+              placeholder="Введите новый пароль"
+            />
+
+            <label htmlFor="confirmPassword">Повторите новый пароль</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={passwords.confirmPassword}
+              onChange={handlePasswordChange}
+              placeholder="Повторите новый пароль"
             />
           </div>
 
@@ -330,7 +465,7 @@ const SettingsSection = () => {
                 <img
                   src={profile.avatar}
                   alt="Текущий аватар"
-                  onError={(e) => e.target.style.display = 'none'}
+                  onError={(e) => (e.target.style.display = 'none')}
                 />
               </div>
             )}

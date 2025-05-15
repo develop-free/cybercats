@@ -11,20 +11,47 @@ const ProfileAPI = {
           success: true,
           isNewUser: true,
           data: {
-            firstName: '',
-            lastName: '',
-            middleName: '',
-            birthDate: '',
-            department: null,
-            group: null,
+            first_name: '',
+            last_name: '',
+            middle_name: '',
+            birth_date: '',
+            department_id: null,
+            group_id: null,
+            login: '',
             email: '',
             avatar: null,
-            admissionYear: new Date().getFullYear()
-          }
+            admission_year: new Date().getFullYear(),
+          },
         };
       }
       console.error('Ошибка при получении профиля:', error);
-      throw new Error(error.response?.data?.message || 'Ошибка при получении профиля');
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          'Ошибка при получении профиля'
+      );
+    }
+  },
+
+  createProfile: async (profileData) => {
+    try {
+      const response = await api.post('/students/profile', profileData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Ошибка при создании профиля:', error);
+      const err = new Error(
+        error.response?.data?.message ||
+          error.message ||
+          'Ошибка сервера'
+      );
+      if (error.response?.data?.errors) {
+        err.validationErrors = error.response.data.errors;
+      }
+      throw err;
     }
   },
 
@@ -38,7 +65,12 @@ const ProfileAPI = {
       return response.data;
     } catch (error) {
       console.error('Ошибка при обновлении профиля:', error);
-      const err = new Error(error.response?.data?.message || 'Ошибка сервера');
+      const err = new Error(
+        error.response?.data?.message ||
+          error.message ||
+          'Ошибка сервера'
+      );
+      err.status = error.response?.status;
       if (error.response?.data?.errors) {
         err.validationErrors = error.response.data.errors;
       }
@@ -51,7 +83,7 @@ const ProfileAPI = {
       const response = await api.get('/students/departments/all');
       return response.data?.data || response.data || [];
     } catch (error) {
-      console.error('Departments error:', error);
+      console.error('Ошибка при получении отделений:', error);
       return [];
     }
   },
@@ -62,7 +94,9 @@ const ProfileAPI = {
         return [];
       }
 
-      const response = await api.get(`/students/groups?department_id=${encodeURIComponent(departmentId)}`);
+      const response = await api.get(
+        `/students/groups?department_id=${encodeURIComponent(departmentId)}`
+      );
       return response.data?.data || response.data || [];
     } catch (err) {
       console.error('Ошибка при получении групп:', err);
@@ -83,9 +117,13 @@ const ProfileAPI = {
       return response.data;
     } catch (error) {
       console.error('Ошибка при обновлении аватара:', error);
-      throw new Error(error.response?.data?.message || 'Ошибка при обновлении аватара');
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          'Ошибка при обновления аватара'
+      );
     }
-  }
+  },
 };
 
 export default ProfileAPI;

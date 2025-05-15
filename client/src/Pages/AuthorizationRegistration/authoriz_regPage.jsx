@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTelegram, faVk, faGoogle, faYandex } from '@fortawesome/free-brands-svg-icons';
 import { registerUser, loginUser } from '../../API/api';
@@ -10,7 +10,7 @@ import './authoriz_regPage.css';
 const Authorization = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loginData, setLoginData] = useState({ login: '', password: '' });
-  const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
+  const [registerData, setRegisterData] = useState({ login: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,19 +25,47 @@ const Authorization = () => {
   };
 
   const validateLoginForm = () => {
-    if (!loginData.login.trim()) throw new Error('Введите логин или email');
-    if (!loginData.password.trim()) throw new Error('Введите пароль');
-    if (loginData.password.length < 6) throw new Error('Пароль должен содержать минимум 6 символов');
+    if (!loginData.login.trim()) {
+      toast.error('Поле "Логин или email" обязательно для заполнения');
+      return false;
+    }
+    if (!loginData.password.trim()) {
+      toast.error('Поле "Пароль" обязательно для заполнения');
+      return false;
+    }
+    if (loginData.password.length < 6) {
+      toast.error('Пароль должен содержать минимум 6 символов');
+      return false;
+    }
+    return true;
   };
 
   const validateRegisterForm = () => {
-    if (!registerData.name.trim()) throw new Error('Введите имя');
-    if (!registerData.email.trim() || !/^\S+@\S+\.\S+$/.test(registerData.email)) {
-      throw new Error('Введите корректный email');
+    if (!registerData.login.trim()) {
+      toast.error('Поле "Логин" обязательно для заполнения');
+      return false;
     }
-    if (!registerData.password.trim() || registerData.password.length < 6) {
-      throw new Error('Пароль должен содержать минимум 6 символов');
+    if (registerData.login.length < 3) {
+      toast.error('Логин должен содержать минимум 3 символа');
+      return false;
     }
+    if (!registerData.email.trim()) {
+      toast.error('Поле "Email" обязательно для заполнения');
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(registerData.email)) {
+      toast.error('Введите корректный email');
+      return false;
+    }
+    if (!registerData.password.trim()) {
+      toast.error('Поле "Пароль" обязательно для заполнения');
+      return false;
+    }
+    if (registerData.password.length < 6) {
+      toast.error('Пароль должен содержать минимум 6 символов');
+      return false;
+    }
+    return true;
   };
 
   const handleLoginSubmit = async (e) => {
@@ -45,7 +73,8 @@ const Authorization = () => {
     setIsLoading(true);
 
     try {
-      validateLoginForm();
+      if (!validateLoginForm()) return;
+
       const response = await loginUser(loginData);
 
       if (!response?.data?.accessToken) {
@@ -59,7 +88,13 @@ const Authorization = () => {
       navigate('/personal_account/settings');
     } catch (error) {
       console.error('Ошибка авторизации:', error);
-      toast.error(error.message || 'Ошибка авторизации. Проверьте данные.');
+      if (error.message.includes('Неверные учетные данные')) {
+        toast.error('Неверный логин или пароль');
+      } else if (error.message.includes('уже используется')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Ошибка авторизации. Проверьте данные.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +105,8 @@ const Authorization = () => {
     setIsLoading(true);
 
     try {
-      validateRegisterForm();
+      if (!validateRegisterForm()) return;
+
       const response = await registerUser(registerData);
 
       if (!response?.data?.accessToken) {
@@ -83,7 +119,11 @@ const Authorization = () => {
       navigate('/personal_account');
     } catch (error) {
       console.error('Ошибка регистрации:', error);
-      toast.error(error.message || 'Ошибка регистрации. Проверьте данные.');
+      if (error.message.includes('уже используется')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Ошибка регистрации. Проверьте данные.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -121,11 +161,10 @@ const Authorization = () => {
               <span>или зарегистрироваться через Email и пароль</span>
               <input
                 type="text"
-                name="name"
-                placeholder="Имя"
-                value={registerData.name}
+                name="login"
+                placeholder="Логин"
+                value={registerData.login}
                 onChange={handleRegisterChange}
-                required
               />
               <input
                 type="email"
@@ -133,7 +172,6 @@ const Authorization = () => {
                 placeholder="Email"
                 value={registerData.email}
                 onChange={handleRegisterChange}
-                required
               />
               <input
                 type="password"
@@ -142,7 +180,6 @@ const Authorization = () => {
                 value={registerData.password}
                 onChange={handleRegisterChange}
                 minLength="6"
-                required
               />
               <button type="submit" disabled={isLoading}>
                 {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
@@ -169,10 +206,9 @@ const Authorization = () => {
               <input
                 type="text"
                 name="login"
-                placeholder="Логин (email или имя)"
+                placeholder="Логин (email или логин)"
                 value={loginData.login}
                 onChange={handleLoginChange}
-                required
               />
               <input
                 type="password"
@@ -180,7 +216,6 @@ const Authorization = () => {
                 placeholder="Пароль"
                 value={loginData.password}
                 onChange={handleLoginChange}
-                required
               />
               <button
                 type="button"

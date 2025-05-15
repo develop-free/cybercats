@@ -9,6 +9,20 @@ const api = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -19,12 +33,44 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      window.location.href = '/login?sessionExpired=true';
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const response = await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+        const { accessToken } = response.data;
+        localStorage.setItem('accessToken', accessToken);
+        api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        processQueue(null, accessToken);
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        localStorage.removeItem('accessToken');
+        return Promise.reject(err); // Не показываем уведомление
+      } finally {
+        isRefreshing = false;
+      }
     }
-    return Promise.reject(error);
+    return Promise.reject(error); // Передаем ошибку дальше без уведомления
   }
 );
 
@@ -35,6 +81,15 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const response = await api.post('/auth/login', credentials);
+  return response;
+};
+
+export const refreshToken = async () => {
+  const response = await axios.post(
+    `${API_URL}/auth/refresh-token`,
+    {},
+    { withCredentials: true }
+  );
   return response;
 };
 
