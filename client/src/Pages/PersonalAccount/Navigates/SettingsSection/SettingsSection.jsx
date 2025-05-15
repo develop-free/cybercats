@@ -4,17 +4,17 @@ import 'react-toastify/dist/ReactToastify.css';
 import './SettingsSection.css';
 import ProfileAPI from '../../../../API/profileAPI';
 
-const SettingsSection = () => {
+const SettingsSection = ({ onProfileUpdate, initialData }) => {
   const [profile, setProfile] = useState({
-    last_name: '',
-    first_name: '',
+    last_name: initialData.lastName || '',
+    first_name: initialData.firstName || '',
     middle_name: '',
     birth_date: '',
     department_id: '',
     group_id: '',
     login: '',
     email: '',
-    avatar: null,
+    avatar: initialData.avatar || null,
     admission_year: new Date().getFullYear(),
   });
 
@@ -22,7 +22,7 @@ const SettingsSection = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(initialData.isNewUser || false);
   const [passwords, setPasswords] = useState({
     oldPassword: '',
     newPassword: '',
@@ -48,8 +48,6 @@ const SettingsSection = () => {
           ProfileAPI.getDepartments().catch(() => []),
         ]);
 
-        console.log('Ответ профиля:', profileResponse);
-
         setDepartments(
           Array.isArray(departmentsResponse?.data)
             ? departmentsResponse.data
@@ -62,22 +60,20 @@ const SettingsSection = () => {
         const isNewUserResponse = profileResponse?.isNewUser || false;
 
         setProfile({
-          last_name: profileData.last_name || '',
-          first_name: profileData.first_name || '',
+          last_name: profileData.last_name || initialData.lastName || '',
+          first_name: profileData.first_name || initialData.firstName || '',
           middle_name: profileData.middle_name || '',
           birth_date: profileData.birth_date?.split('T')[0] || '',
           department_id: profileData.department_id?._id || '',
           group_id: profileData.group_id?._id || '',
           login: profileData.login || '',
           email: profileData.email || '',
-          avatar: profileData.avatar || null,
+          avatar: profileData.avatar || initialData.avatar || null,
           admission_year: profileData.admission_year || new Date().getFullYear(),
         });
 
         setIsNewUser(isNewUserResponse);
-        console.log('isNewUser после получения:', isNewUserResponse);
       } catch (err) {
-        console.error('Ошибка при получении данных:', err);
         setError('Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.');
         setDepartments([]);
       } finally {
@@ -86,7 +82,7 @@ const SettingsSection = () => {
     };
 
     fetchData();
-  }, []);
+  }, [initialData]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -105,7 +101,6 @@ const SettingsSection = () => {
 
         setGroups(normalizedGroups);
       } catch (err) {
-        console.error('Ошибка при получении групп:', err);
         setGroups([]);
       }
     };
@@ -159,8 +154,6 @@ const SettingsSection = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Отправка формы, isNewUser:', isNewUser);
-    console.log('Данные профиля:', profile);
 
     try {
       const requiredFields = [
@@ -212,10 +205,6 @@ const SettingsSection = () => {
       formData.append('email', profile.email);
       formData.append('admission_year', profile.admission_year);
 
-      for (let [key, value] of formData.entries()) {
-        console.log(`FormData: ${key} = ${value}`);
-      }
-
       if (
         passwords.oldPassword &&
         passwords.newPassword &&
@@ -240,7 +229,6 @@ const SettingsSection = () => {
           : ProfileAPI.updateProfile(formData));
       } catch (error) {
         if (error.response?.status === 404 && !isNewUser) {
-          console.log('Профиль не найден, пытаемся создать через POST');
           response = await ProfileAPI.createProfile(formData);
         } else {
           throw error;
@@ -249,6 +237,16 @@ const SettingsSection = () => {
 
       if (response?.success) {
         toast.success(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранён!');
+
+        // Синхронное обновление данных в родительском компоненте
+        if (onProfileUpdate) {
+          onProfileUpdate({
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            avatar: response.data?.avatar || profile.avatar,
+            isNewUser: false
+          });
+        }
 
         const updatedProfile = await ProfileAPI.getProfile();
         if (updatedProfile?.data) {
@@ -271,14 +269,11 @@ const SettingsSection = () => {
             newPassword: '',
             confirmPassword: '',
           });
-          // Сбрасываем аватар, чтобы избежать повторной загрузки того же файла
-          setProfile((prev) => ({ ...prev, avatar: updatedProfile.data.avatar || null }));
         }
       } else {
         toast.error(response?.message || 'Ошибка при сохранении профиля');
       }
     } catch (error) {
-      console.error('Ошибка при сохранении профиля:', error);
       const errorMessage = error.response?.data?.errors?.join('; ') ||
                           error.response?.data?.message ||
                           error.message ||

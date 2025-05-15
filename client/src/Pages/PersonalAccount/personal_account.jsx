@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+// PersonalAccount.jsx
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import avatar from '../../assets/images/avotar.png';
 import { logoutUser } from '../../API/api';
+import ProfileAPI from '../../API/profileAPI';
 import './personal_account.css';
 
 // Импорт компонентов разделов
@@ -15,13 +17,54 @@ import SettingsSection from './Navigates/SettingsSection/SettingsSection';
 const PersonalAccount = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userData, setUserData] = useState({
+    firstName: 'Новый',
+    lastName: 'Пользователь',
+    isNewUser: true,
+    avatar: null
+  });
+
+  const calculateProgress = (points, currentLevel) => {
+  const pointsNeededForNextLevel = 100; // или другая логика
+  const pointsInCurrentLevel = points % pointsNeededForNextLevel;
+  return (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+};
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
       navigate('/login');
+    } else {
+      fetchUserProfile();
     }
   }, [navigate]);
+
+ const fetchUserProfile = async () => {
+  try {
+    const profileResponse = await ProfileAPI.getProfile();
+    setUserData({
+      firstName: profileResponse.data?.first_name || 'Новый',
+      lastName: profileResponse.data?.last_name || 'Пользователь',
+      isNewUser: profileResponse.isNewUser || !profileResponse.data,
+      avatar: profileResponse.data?.avatar || null,
+      points: profileResponse.data?.points || 0,    // 0 если нет данных
+      level: profileResponse.data?.level || 1       // 1 если нет данных
+    });
+  } catch (error) {
+    console.error('Ошибка при загрузке профиля:', error);
+  }
+};
+
+
+  const handleProfileUpdate = (updatedData) => {
+    setUserData(prev => ({
+      ...prev,
+      firstName: updatedData.first_name || prev.firstName,
+      lastName: updatedData.last_name || prev.lastName,
+      isNewUser: false,
+      avatar: updatedData.avatar || prev.avatar
+    }));
+  };
 
   const activeSection = location.pathname.split('/')[2] || 'profile';
 
@@ -35,32 +78,16 @@ const PersonalAccount = () => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       navigate('/authorization');
-      toast.success('Выход выполнен успешно!', {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.success('Выход выполнен успешно!');
     } catch (error) {
-      toast.error(error.message || 'Произошла ошибка при выходе из аккаунта.', {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error(error.message || 'Произошла ошибка при выходе из аккаунта.');
     }
   };
 
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
-        return <ProfileSection />;
+        return <ProfileSection userData={userData} />;
       case 'portfolio':
         return <PortfolioSection />;
       case 'achievements':
@@ -68,9 +95,12 @@ const PersonalAccount = () => {
       case 'events':
         return <EventsSection />;
       case 'settings':
-        return <SettingsSection />;
+        return <SettingsSection 
+                 onProfileUpdate={handleProfileUpdate} 
+                 initialData={userData}
+               />;
       default:
-        return <ProfileSection />;
+        return <ProfileSection userData={userData} />;
     }
   };
 
@@ -78,18 +108,21 @@ const PersonalAccount = () => {
     <div className="personal-cabinet-container">
       <div className="sidebar">
         <div className="sidebar-header">
-          <img src={avatar} alt="Аватар" />
-          <h3>Иван Петров</h3>
+          <img src={userData.avatar || avatar} alt="Аватар" />
+          <h3>{`${userData.firstName} ${userData.lastName}`}</h3>
           <p>Студент</p>
         </div>
 
         <div className="level-progress">
           <div className="progress-bar">
-            <div className="progress-fill" style={{ width: '60%' }}></div>
+            <div 
+              className="progress-fill" 
+              style={{ width: `${calculateProgress(userData.points, userData.level)}%` }}
+            ></div>
           </div>
           <div className="level-info">
-            <span className="points">1200 баллов</span>
-            <span className="level">Уровень 5</span>
+            <span className="points">{userData.points} баллов</span>
+            <span className="level">Уровень {userData.level}</span>
           </div>
         </div>
 

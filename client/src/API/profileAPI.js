@@ -24,7 +24,6 @@ const ProfileAPI = {
           },
         };
       }
-      console.error('Ошибка при получении профиля:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
@@ -42,7 +41,6 @@ const ProfileAPI = {
       });
       return response.data;
     } catch (error) {
-      console.error('Ошибка при создании профиля:', error);
       const err = new Error(
         error.response?.data?.message ||
           error.message ||
@@ -64,7 +62,6 @@ const ProfileAPI = {
       });
       return response.data;
     } catch (error) {
-      console.error('Ошибка при обновлении профиля:', error);
       const err = new Error(
         error.response?.data?.message ||
           error.message ||
@@ -83,7 +80,6 @@ const ProfileAPI = {
       const response = await api.get('/students/departments/all');
       return response.data?.data || response.data || [];
     } catch (error) {
-      console.error('Ошибка при получении отделений:', error);
       return [];
     }
   },
@@ -99,7 +95,6 @@ const ProfileAPI = {
       );
       return response.data?.data || response.data || [];
     } catch (err) {
-      console.error('Ошибка при получении групп:', err);
       return [];
     }
   },
@@ -116,7 +111,6 @@ const ProfileAPI = {
       });
       return response.data;
     } catch (error) {
-      console.error('Ошибка при обновлении аватара:', error);
       throw new Error(
         error.response?.data?.message ||
           error.message ||
