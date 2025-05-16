@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTelegram, faVk, faGoogle, faYandex } from '@fortawesome/free-brands-svg-icons';
 import { registerUser, loginUser } from '../../API/api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 import './authoriz_regPage.css';
 
 const Authorization = () => {
@@ -13,6 +14,7 @@ const Authorization = () => {
   const [registerData, setRegisterData] = useState({ login: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { setAuth } = useContext(AuthContext);
 
   const toggleForm = () => setIsSignUp(!isSignUp);
 
@@ -83,9 +85,20 @@ const Authorization = () => {
 
       toast.success('Авторизация успешна! Добро пожаловать!');
       localStorage.setItem('accessToken', response.data.accessToken);
-      localStorage.setItem('userRole', response.data.role || 'user');
-      
-      navigate('/personal_account/settings');
+      setAuth({
+        isAuthenticated: true,
+        user: { login: response.data.login, email: response.data.email, role: response.data.role || 'user' },
+      });
+
+      // Перенаправление на основе роли
+      const role = response.data.role || 'user';
+      if (role === 'admin') {
+        navigate('/admin_dashboard');
+      } else if (role === 'teacher') {
+        navigate('/teacher_dashboard');
+      } else {
+        navigate('/personal_account');
+      }
     } catch (error) {
       console.error('Ошибка авторизации:', error);
       if (error.message.includes('Неверные учетные данные')) {
@@ -115,8 +128,20 @@ const Authorization = () => {
 
       toast.success('Регистрация успешна! Вход выполнен.');
       localStorage.setItem('accessToken', response.data.accessToken);
-      localStorage.setItem('userRole', response.data.role || 'user');
-      navigate('/personal_account');
+      setAuth({
+        isAuthenticated: true,
+        user: { login: registerData.login, email: registerData.email, role: response.data.role || 'user' },
+      });
+
+      // Перенаправление на основе роли
+      const role = response.data.role || 'user';
+      if (role === 'admin') {
+        navigate('/admin_dashboard/*');
+      } else if (role === 'teacher') {
+        navigate('/teacher_dashboard/*');
+      } else {
+        navigate('/personal_account/*');
+      }
     } catch (error) {
       console.error('Ошибка регистрации:', error);
       if (error.message.includes('уже используется')) {

@@ -65,12 +65,12 @@ api.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         localStorage.removeItem('accessToken');
-        return Promise.reject(err); // Не показываем уведомление
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }
     }
-    return Promise.reject(error); // Передаем ошибку дальше без уведомления
+    return Promise.reject(error);
   }
 );
 
@@ -95,6 +95,12 @@ export const refreshToken = async () => {
 
 export const logoutUser = async () => {
   const response = await api.post('/auth/logout');
+  localStorage.removeItem('accessToken');
+  return response;
+};
+
+export const logoutAll = async () => {
+  const response = await api.post('/auth/logout-all');
   localStorage.removeItem('accessToken');
   return response;
 };

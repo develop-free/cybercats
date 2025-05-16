@@ -1,5 +1,4 @@
-// PersonalAccount.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import avatar from '../../assets/images/avotar.png';
