@@ -57,7 +57,6 @@ const Modal = ({ isOpen, onClose, teacher, onSave, onDelete, isAddMode }) => {
       }
 
       await onSave(formData);
-      toast.success(isAddMode ? 'Преподаватель добавлен!' : 'Изменения сохранены!');
       onClose();
     } catch (error) {
       toast.error(error.message);
@@ -68,8 +67,7 @@ const Modal = ({ isOpen, onClose, teacher, onSave, onDelete, isAddMode }) => {
 
   const confirmDelete = async () => {
     try {
-      await onDelete(formData.id);
-      toast.success('Преподаватель удален!');
+      await onDelete(formData.id); // Вызываем onDelete без уведомления
       onClose();
     } catch (error) {
       toast.error(error.message);
@@ -207,7 +205,7 @@ const TeachersSection = () => {
       (currentPage - 1) * teachersPerPage,
       currentPage * teachersPerPage
     );
-  }, [teachers, currentPage, teachersPerPage]);
+  }, [teachers, currentPage]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -216,12 +214,29 @@ const TeachersSection = () => {
   };
 
   const handleAddTeacher = async (teacherData) => {
+    const tempId = `temp_${Date.now()}`; // Временный ID для оптимистического обновления
     try {
-      const newTeacher = await createTeacher(teacherData);
-      setTeachers([...teachers, newTeacher]);
+      // Оптимистическое обновление: добавляем временную запись и показываем уведомление
+      setTeachers([...teachers, { ...teacherData, _id: tempId }]);
       setIsAddModalOpen(false);
+      toast.success('Преподаватель добавлен!'); // Уведомление сразу после нажатия
+
+      // Выполняем запрос на создание преподавателя
+      const newTeacher = await createTeacher(teacherData);
+      
+      // Обновляем список преподавателей, заменяя временную запись
+      setTeachers(teachers => 
+        teachers.map(t => (t._id === tempId ? newTeacher : t))
+      );
+
+      // Повторно загружаем список преподавателей для синхронизации
+      const updatedTeachers = await fetchTeachers();
+      setTeachers(updatedTeachers || []);
     } catch (error) {
-      throw error;
+      // В случае ошибки показываем уведомление и синхронизируем с сервером
+      toast.error(error.message);
+      const updatedTeachers = await fetchTeachers();
+      setTeachers(updatedTeachers || []);
     }
   };
 
@@ -232,8 +247,9 @@ const TeachersSection = () => {
         teacher._id === teacherData.id ? updatedTeacher : teacher
       ));
       setIsEditModalOpen(false);
+      toast.success('Изменения сохранены!');
     } catch (error) {
-      throw error;
+      toast.error(error.message);
     }
   };
 
@@ -242,8 +258,9 @@ const TeachersSection = () => {
       await deleteTeacher(id);
       setTeachers(teachers.filter(teacher => teacher._id !== id));
       setIsEditModalOpen(false);
+      toast.success('Преподаватель удален!'); // Уведомление только здесь
     } catch (error) {
-      throw error;
+      toast.error(error.message);
     }
   };
 

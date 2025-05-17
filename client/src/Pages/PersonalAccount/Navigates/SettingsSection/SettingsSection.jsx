@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+// SettingsSection.jsx
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Cropper from 'react-easy-crop';
 import './SettingsSection.css';
 import ProfileAPI from '../../../../API/profileAPI';
 
 const SettingsSection = ({ onProfileUpdate, initialData }) => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({
     last_name: initialData.lastName || '',
     first_name: initialData.firstName || '',
@@ -28,6 +32,12 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
     newPassword: '',
     confirmPassword: '',
   });
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const isMounted = useRef(false);
 
   const validateName = (name) => {
     return /^[A-Za-zА-Яа-яЁё\s-]+$/.test(name);
@@ -38,13 +48,28 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
   };
 
   useEffect(() => {
+    if (isMounted.current) return;
+    isMounted.current = true;
+
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.warn('Токен отсутствует, перенаправление на /login');
+          navigate('/login');
+          return;
+        }
+
         const [profileResponse, departmentsResponse] = await Promise.all([
-          ProfileAPI.getProfile().catch((e) => ({ isNewUser: true, data: null })),
+          ProfileAPI.getProfile().catch((err) => {
+            if (err.response?.status === 401) {
+              throw new Error('unauthorized');
+            }
+            return { isNewUser: true, data: null };
+          }),
           ProfileAPI.getDepartments().catch(() => []),
         ]);
 
@@ -59,6 +84,12 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
         const profileData = profileResponse?.data || {};
         const isNewUserResponse = profileResponse?.isNewUser || false;
 
+        const avatarUrl = profileData.avatar
+          ? profileData.avatar.startsWith('http')
+            ? profileData.avatar
+            : `http://localhost:5000${profileData.avatar}`
+          : null;
+
         setProfile({
           last_name: profileData.last_name || initialData.lastName || '',
           first_name: profileData.first_name || initialData.firstName || '',
@@ -68,13 +99,24 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
           group_id: profileData.group_id?._id || '',
           login: profileData.login || '',
           email: profileData.email || '',
-          avatar: profileData.avatar || initialData.avatar || null,
+          avatar: avatarUrl,
           admission_year: profileData.admission_year || new Date().getFullYear(),
         });
 
         setIsNewUser(isNewUserResponse);
       } catch (err) {
-        setError('Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.');
+        console.error('Ошибка в fetchData:', err);
+        if (err.message === 'unauthorized') {
+          console.warn('Ошибка 401, перенаправление на /login');
+          localStorage.removeItem('accessToken');
+          navigate('/login');
+          return;
+        }
+        setError(
+          err.message.includes('Network Error')
+            ? 'Сервер недоступен. Проверьте подключение или попробуйте позже.'
+            : 'Не удалось загрузить данные профиля. Пожалуйста, обновите страницу.'
+        );
         setDepartments([]);
       } finally {
         setLoading(false);
@@ -82,7 +124,11 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
     };
 
     fetchData();
-  }, [initialData]);
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [initialData, navigate]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -101,6 +147,7 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
 
         setGroups(normalizedGroups);
       } catch (err) {
+        console.error('Ошибка получения групп:', err);
         setGroups([]);
       }
     };
@@ -149,7 +196,88 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
   };
 
   const handleFileChange = (e) => {
-    setProfile((prev) => ({ ...prev, avatar: e.target.files[0] }));
+    const file = e.target.files[0];
+    if (file) {
+      console.log('Выбранный файл:', { name: file.name, size: file.size, type: file.type });
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageSrc(reader.result);
+        setIsCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onCropComplete = (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const getCroppedImg = async (imageSrc, pixelCrop) => {
+    const image = new Image();
+    image.src = imageSrc;
+    await new Promise((resolve) => (image.onload = resolve));
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 100;
+    canvas.height = 100;
+
+    ctx.beginPath();
+    ctx.arc(50, 50, 50, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      100,
+      100
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+        console.log('Обрезанное изображение:', { name: file.name, size: file.size });
+        resolve(file);
+      }, 'image/jpeg');
+    });
+  };
+
+  const handleCropSave = async () => {
+    try {
+      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
+      setProfile((prev) => ({ ...prev, avatar: croppedImage }));
+      setIsCropModalOpen(false);
+      setImageSrc(null);
+    } catch (err) {
+      console.error('Ошибка при обрезке изображения:', err);
+      toast.error('Ошибка при обрезке изображения');
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropModalOpen(false);
+    setImageSrc(null);
+  };
+
+  const handleAvatarDelete = async () => {
+    try {
+      const response = await ProfileAPI.updateAvatar(null);
+      console.log('Ответ при удалении аватара:', response);
+      setProfile((prev) => ({ ...prev, avatar: null }));
+      if (onProfileUpdate) {
+        onProfileUpdate({ ...profile, avatar: null });
+      }
+      toast.success('Аватар успешно удалён');
+    } catch (err) {
+      console.error('Ошибка при удалении аватара:', err);
+      toast.error('Ошибка при удалении аватара');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -222,34 +350,47 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
         formData.append('avatar', profile.avatar);
       }
 
+      console.log('Отправляемые данные:', {
+        entries: [...formData.entries()],
+        avatar: profile.avatar instanceof File ? { name: profile.avatar.name, size: profile.avatar.size } : profile.avatar,
+      });
+
       let response;
       try {
         response = await (isNewUser
           ? ProfileAPI.createProfile(formData)
           : ProfileAPI.updateProfile(formData));
       } catch (error) {
-        if (error.response?.status === 404 && !isNewUser) {
-          response = await ProfileAPI.createProfile(formData);
-        } else {
-          throw error;
+        if (error.response?.status === 401) {
+          console.warn('Ошибка 401, перенаправление на /login');
+          localStorage.removeItem('accessToken');
+          navigate('/login');
+          return;
         }
+        throw error;
       }
+
+      console.log('Ответ сервера:', response);
 
       if (response?.success) {
         toast.success(isNewUser ? 'Профиль успешно создан!' : 'Профиль успешно сохранён!');
 
-        // Синхронное обновление данных в родительском компоненте
         if (onProfileUpdate) {
           onProfileUpdate({
             first_name: profile.first_name,
             last_name: profile.last_name,
             avatar: response.data?.avatar || profile.avatar,
-            isNewUser: false
+            isNewUser: false,
           });
         }
 
         const updatedProfile = await ProfileAPI.getProfile();
         if (updatedProfile?.data) {
+          const avatarUrl = updatedProfile.data.avatar
+            ? updatedProfile.data.avatar.startsWith('http')
+              ? updatedProfile.data.avatar
+              : `http://localhost:5000${updatedProfile.data.avatar}`
+            : null;
           setProfile({
             last_name: updatedProfile.data.last_name || '',
             first_name: updatedProfile.data.first_name || '',
@@ -259,7 +400,7 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
             group_id: updatedProfile.data.group_id?._id || '',
             login: updatedProfile.data.login || '',
             email: updatedProfile.data.email || '',
-            avatar: updatedProfile.data.avatar || null,
+            avatar: avatarUrl,
             admission_year:
               updatedProfile.data.admission_year || new Date().getFullYear(),
           });
@@ -274,10 +415,14 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
         toast.error(response?.message || 'Ошибка при сохранении профиля');
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.errors?.join('; ') ||
-                          error.response?.data?.message ||
-                          error.message ||
-                          'Произошла ошибка при сохранении профиля';
+      console.error('Ошибка при сохранении профиля:', error);
+      if (error.response?.status === 401) {
+        console.warn('Ошибка 401, перенаправление на /login');
+        localStorage.removeItem('accessToken');
+        navigate('/login');
+        return;
+      }
+      const errorMessage = error.response?.data?.message || error.message || 'Произошла ошибка при сохранении профиля';
       toast.error(errorMessage);
     }
   };
@@ -462,8 +607,19 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
                 <img
                   src={profile.avatar}
                   alt="Текущий аватар"
-                  onError={(e) => (e.target.style.display = 'none')}
+                  onError={(e) => {
+                    console.log('Ошибка предпросмотра аватара:', e.target.src);
+                    e.target.style.display = 'none';
+                  }}
                 />
+                <button
+                  type="button"
+                  className="avatar-delete"
+                  onClick={handleAvatarDelete}
+                  title="Удалить аватар"
+                >
+                  ×
+                </button>
               </div>
             )}
           </div>
@@ -473,6 +629,48 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
           </button>
         </form>
       </div>
+
+      {isCropModalOpen && (
+        <div className="modal-overlay">
+          <div className="crop-modal">
+            <h2>Обрезка аватара</h2>
+            <div className="crop-container">
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="crop-controls">
+              <label>
+                Масштаб:
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.1"
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                />
+              </label>
+            </div>
+            <div className="modal-buttons">
+              <button className="modal-button confirm" onClick={handleCropSave}>
+                Сохранить
+              </button>
+              <button className="modal-button cancel" onClick={handleCropCancel}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

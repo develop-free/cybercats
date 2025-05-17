@@ -72,11 +72,11 @@ const Authorization = () => {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    if (!validateLoginForm()) return;
+
     setIsLoading(true);
 
     try {
-      if (!validateLoginForm()) return;
-
       const response = await loginUser(loginData);
 
       if (!response?.data?.accessToken) {
@@ -87,10 +87,13 @@ const Authorization = () => {
       localStorage.setItem('accessToken', response.data.accessToken);
       setAuth({
         isAuthenticated: true,
-        user: { login: response.data.login, email: response.data.email, role: response.data.role || 'user' },
+        user: {
+          login: response.data.login,
+          email: response.data.email,
+          role: response.data.role || 'user'
+        },
       });
 
-      // Перенаправление на основе роли
       const role = response.data.role || 'user';
       if (role === 'admin') {
         navigate('/admin_dashboard');
@@ -101,13 +104,8 @@ const Authorization = () => {
       }
     } catch (error) {
       console.error('Ошибка авторизации:', error);
-      if (error.message.includes('Неверные учетные данные')) {
-        toast.error('Неверный логин или пароль');
-      } else if (error.message.includes('уже используется')) {
-        toast.error(error.message);
-      } else {
-        toast.error('Ошибка авторизации. Проверьте данные.');
-      }
+      const errorMessage = error.message || 'Ошибка авторизации. Проверьте логин и пароль.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +113,11 @@ const Authorization = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    if (!validateRegisterForm()) return;
+
     setIsLoading(true);
 
     try {
-      if (!validateRegisterForm()) return;
-
       const response = await registerUser(registerData);
 
       if (!response?.data?.accessToken) {
@@ -130,25 +128,25 @@ const Authorization = () => {
       localStorage.setItem('accessToken', response.data.accessToken);
       setAuth({
         isAuthenticated: true,
-        user: { login: registerData.login, email: registerData.email, role: response.data.role || 'user' },
+        user: {
+          login: registerData.login,
+          email: registerData.email,
+          role: response.data.role || 'user'
+        },
       });
 
-      // Перенаправление на основе роли
       const role = response.data.role || 'user';
       if (role === 'admin') {
-        navigate('/admin_dashboard/*');
+        navigate('/admin_dashboard');
       } else if (role === 'teacher') {
-        navigate('/teacher_dashboard/*');
+        navigate('/teacher_dashboard');
       } else {
-        navigate('/personal_account/*');
+        navigate('/personal_account');
       }
     } catch (error) {
       console.error('Ошибка регистрации:', error);
-      if (error.message.includes('уже используется')) {
-        toast.error(error.message);
-      } else {
-        toast.error('Ошибка регистрации. Проверьте данные.');
-      }
+      const errorMessage = error.message || 'Ошибка регистрации. Проверьте данные.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -190,6 +188,8 @@ const Authorization = () => {
                 placeholder="Логин"
                 value={registerData.login}
                 onChange={handleRegisterChange}
+                required
+                minLength="3"
               />
               <input
                 type="email"
@@ -197,6 +197,7 @@ const Authorization = () => {
                 placeholder="Email"
                 value={registerData.email}
                 onChange={handleRegisterChange}
+                required
               />
               <input
                 type="password"
@@ -204,6 +205,7 @@ const Authorization = () => {
                 placeholder="Пароль (минимум 6 символов)"
                 value={registerData.password}
                 onChange={handleRegisterChange}
+                required
                 minLength="6"
               />
               <button type="submit" disabled={isLoading}>
@@ -234,6 +236,7 @@ const Authorization = () => {
                 placeholder="Логин (email или логин)"
                 value={loginData.login}
                 onChange={handleLoginChange}
+                required
               />
               <input
                 type="password"
@@ -241,6 +244,8 @@ const Authorization = () => {
                 placeholder="Пароль"
                 value={loginData.password}
                 onChange={handleLoginChange}
+                required
+                minLength="6"
               />
               <button
                 type="button"

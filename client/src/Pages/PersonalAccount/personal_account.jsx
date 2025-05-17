@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+// PersonalAccount.jsx
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import avatar from '../../assets/images/avotar.png';
@@ -6,7 +7,6 @@ import { logoutUser } from '../../API/api';
 import ProfileAPI from '../../API/profileAPI';
 import './personal_account.css';
 
-// Импорт компонентов разделов
 import ProfileSection from './Navigates/ProfileSection/ProfileSection';
 import PortfolioSection from './Navigates/PortfolioSection/PortfolioSection';
 import AchievementsSection from './Navigates/AchievementsSection/AchievementsSection';
@@ -48,43 +48,63 @@ const PersonalAccount = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const calculateProgress = (points, currentLevel) => {
-    const pointsNeededForNextLevel = 100; // или другая логика
+    const pointsNeededForNextLevel = 100;
     const pointsInCurrentLevel = points % pointsNeededForNextLevel;
     return (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
   };
 
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      navigate('/login');
-    } else {
-      fetchUserProfile();
-    }
-  }, [navigate]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const profileResponse = await ProfileAPI.getProfile();
+      console.log('Получен профиль:', profileResponse);
+      const avatarUrl = profileResponse.data?.avatar
+        ? profileResponse.data.avatar.startsWith('http')
+          ? profileResponse.data.avatar
+          : `http://localhost:5000${profileResponse.data.avatar}`
+        : null;
       setUserData({
         firstName: profileResponse.data?.first_name || 'Новый',
         lastName: profileResponse.data?.last_name || 'Пользователь',
-        isNewUser: profileResponse.isNewUser || !profileResponse.data,
-        avatar: profileResponse.data?.avatar || null,
+        isNewUser: profileResponse.isNewUser || false,
+        avatar: avatarUrl,
         points: profileResponse.data?.points || 0,
         level: profileResponse.data?.level || 1,
       });
     } catch (error) {
       console.error('Ошибка при загрузке профиля:', error);
+      toast.error('Не удалось загрузить профиль. Попробуйте снова.');
+      if (error.response?.status === 401) {
+        console.warn('Ошибка 401, перенаправление на /login');
+        localStorage.removeItem('accessToken');
+        navigate('/login');
+      }
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    console.log('Проверка токена:', token ? 'Токен присутствует' : 'Токен отсутствует');
+    if (!token) {
+      console.warn('Токен отсутствует, перенаправление на /login');
+      navigate('/login');
+      return;
+    }
+    fetchUserProfile();
+  }, [navigate, fetchUserProfile]);
 
   const handleProfileUpdate = (updatedData) => {
+    console.log('Обновленные данные профиля:', updatedData);
+    const avatarUrl = updatedData.avatar
+      ? updatedData.avatar.startsWith('http')
+        ? updatedData.avatar
+        : `http://localhost:5000${updatedData.avatar}`
+      : null;
     setUserData((prev) => ({
       ...prev,
       firstName: updatedData.first_name || prev.firstName,
       lastName: updatedData.last_name || prev.lastName,
-      isNewUser: false,
-      avatar: updatedData.avatar || prev.avatar,
+      isNewUser: updatedData.isNewUser || false,
+      avatar: avatarUrl,
     }));
   };
 
@@ -98,10 +118,10 @@ const PersonalAccount = () => {
     try {
       await logoutUser();
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       navigate('/authorization');
       toast.success('Выход выполнен успешно!');
     } catch (error) {
+      console.error('Ошибка при выходе:', error);
       toast.error(error.message || 'Произошла ошибка при выходе из аккаунта.');
     }
     setShowLogoutModal(false);
@@ -113,6 +133,11 @@ const PersonalAccount = () => {
 
   const closeLogoutModal = () => {
     setShowLogoutModal(false);
+  };
+
+  const handleAvatarError = (e) => {
+    console.log('Ошибка загрузки аватара:', e.target.src);
+    e.target.src = avatar;
   };
 
   const renderSection = () => {
@@ -141,7 +166,12 @@ const PersonalAccount = () => {
     <div className="personal-cabinet-container">
       <div className="sidebar">
         <div className="sidebar-header">
-          <img src={userData.avatar || avatar} alt="Аватар" />
+          <img
+            src={userData.avatar || avatar}
+            alt="Аватар"
+            onError={handleAvatarError}
+            className="sidebar-avatar"
+          />
           <h3>{`${userData.firstName} ${userData.lastName}`}</h3>
           <p>Студент</p>
         </div>
