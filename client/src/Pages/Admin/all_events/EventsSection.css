@@ -96,7 +96,7 @@
   color: #374151;
   font-size: 16px;
   font-weight: 500;
-  cursor: pointer; /* Указатель для кликабельных ячеек */
+  cursor: pointer;
 }
 
 .events-table td.icon-cell {
@@ -104,7 +104,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
 }
 
 .events-table tbody tr:hover {
@@ -162,7 +161,6 @@
   align-items: center;
 }
 
-/* Стили для модального окна */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -206,7 +204,7 @@
   font-size: 14px;
 }
 
-.dropdown {
+.students-list {
   max-height: 150px;
   overflow-y: auto;
   border: 1px solid #ccc;
@@ -214,13 +212,20 @@
   background-color: white;
 }
 
-.dropdown-item {
+.student-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 8px;
   cursor: pointer;
 }
 
-.dropdown-item:hover {
-  background-color: #f0f0f0;
+.student-option:hover {
+  background-color: rgba(81, 45, 168, 0.1);
+}
+
+.student-option input[type="checkbox"] {
+  margin-left: 10px;
 }
 
 .modal-actions {
@@ -263,4 +268,38 @@
 
 .modal-button.cancel:hover {
   background-color: #4b5563;
+}
+
+.modal-button.confirm {
+  background-color: #ef4444;
+  color: white;
+}
+
+.modal-button.confirm:hover {
+  background-color: #dc2626;
+}
+
+.delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: center;
+}
+
+.delete-confirm h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.delete-confirm p {
+  font-size: 16px;
+  color: #374151;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #374151;
 }

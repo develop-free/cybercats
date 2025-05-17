@@ -10,8 +10,29 @@ import './personal_account.css';
 import ProfileSection from './Navigates/ProfileSection/ProfileSection';
 import PortfolioSection from './Navigates/PortfolioSection/PortfolioSection';
 import AchievementsSection from './Navigates/AchievementsSection/AchievementsSection';
-import EventsSection from './Navigates/EventsSection/EventsSection';
+import EventsSectionUser from './Navigates/EventsSection/EventsSectionUser';
 import SettingsSection from './Navigates/SettingsSection/SettingsSection';
+
+const LogoutModal = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3>Подтверждение выхода</h3>
+        <p>Вы уверены, что хотите выйти из аккаунта?</p>
+        <div className="modal-actions">
+          <button className="modal-button confirm" onClick={onConfirm}>
+            Подтвердить
+          </button>
+          <button className="modal-button cancel" onClick={onClose}>
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PersonalAccount = () => {
   const navigate = useNavigate();
@@ -20,14 +41,17 @@ const PersonalAccount = () => {
     firstName: 'Новый',
     lastName: 'Пользователь',
     isNewUser: true,
-    avatar: null
+    avatar: null,
+    points: 0,
+    level: 1,
   });
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const calculateProgress = (points, currentLevel) => {
-  const pointsNeededForNextLevel = 100; // или другая логика
-  const pointsInCurrentLevel = points % pointsNeededForNextLevel;
-  return (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
-};
+    const pointsNeededForNextLevel = 100; // или другая логика
+    const pointsInCurrentLevel = points % pointsNeededForNextLevel;
+    return (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -38,30 +62,29 @@ const PersonalAccount = () => {
     }
   }, [navigate]);
 
- const fetchUserProfile = async () => {
-  try {
-    const profileResponse = await ProfileAPI.getProfile();
-    setUserData({
-      firstName: profileResponse.data?.first_name || 'Новый',
-      lastName: profileResponse.data?.last_name || 'Пользователь',
-      isNewUser: profileResponse.isNewUser || !profileResponse.data,
-      avatar: profileResponse.data?.avatar || null,
-      points: profileResponse.data?.points || 0,    // 0 если нет данных
-      level: profileResponse.data?.level || 1       // 1 если нет данных
-    });
-  } catch (error) {
-    console.error('Ошибка при загрузке профиля:', error);
-  }
-};
-
+  const fetchUserProfile = async () => {
+    try {
+      const profileResponse = await ProfileAPI.getProfile();
+      setUserData({
+        firstName: profileResponse.data?.first_name || 'Новый',
+        lastName: profileResponse.data?.last_name || 'Пользователь',
+        isNewUser: profileResponse.isNewUser || !profileResponse.data,
+        avatar: profileResponse.data?.avatar || null,
+        points: profileResponse.data?.points || 0,
+        level: profileResponse.data?.level || 1,
+      });
+    } catch (error) {
+      console.error('Ошибка при загрузке профиля:', error);
+    }
+  };
 
   const handleProfileUpdate = (updatedData) => {
-    setUserData(prev => ({
+    setUserData((prev) => ({
       ...prev,
       firstName: updatedData.first_name || prev.firstName,
       lastName: updatedData.last_name || prev.lastName,
       isNewUser: false,
-      avatar: updatedData.avatar || prev.avatar
+      avatar: updatedData.avatar || prev.avatar,
     }));
   };
 
@@ -81,6 +104,15 @@ const PersonalAccount = () => {
     } catch (error) {
       toast.error(error.message || 'Произошла ошибка при выходе из аккаунта.');
     }
+    setShowLogoutModal(false);
+  };
+
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    setShowLogoutModal(false);
   };
 
   const renderSection = () => {
@@ -92,12 +124,14 @@ const PersonalAccount = () => {
       case 'achievements':
         return <AchievementsSection />;
       case 'events':
-        return <EventsSection />;
+        return <EventsSectionUser />;
       case 'settings':
-        return <SettingsSection 
-                 onProfileUpdate={handleProfileUpdate} 
-                 initialData={userData}
-               />;
+        return (
+          <SettingsSection
+            onProfileUpdate={handleProfileUpdate}
+            initialData={userData}
+          />
+        );
       default:
         return <ProfileSection userData={userData} />;
     }
@@ -114,8 +148,8 @@ const PersonalAccount = () => {
 
         <div className="level-progress">
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
+            <div
+              className="progress-fill"
               style={{ width: `${calculateProgress(userData.points, userData.level)}%` }}
             ></div>
           </div>
@@ -157,7 +191,7 @@ const PersonalAccount = () => {
             Настройки профиля
           </button>
         </nav>
-        <button className="sidebar-button logout" onClick={handleLogout}>
+        <button className="sidebar-button logout" onClick={openLogoutModal}>
           Выход
         </button>
       </div>
@@ -165,6 +199,12 @@ const PersonalAccount = () => {
       <div className="content">
         {renderSection()}
       </div>
+
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={closeLogoutModal}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 };
