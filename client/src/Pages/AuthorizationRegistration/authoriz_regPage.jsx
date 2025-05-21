@@ -96,11 +96,11 @@ const Authorization = () => {
 
       const role = response.data.role || 'user';
       if (role === 'admin') {
-        navigate('/admin_dashboard');
+        navigate('/admin_dashboard/*');
       } else if (role === 'teacher') {
-        navigate('/teacher_dashboard');
+        navigate('/teacher_dashboard/*');
       } else {
-        navigate('/personal_account');
+        navigate('/personal_account/*');
       }
     } catch (error) {
       console.error('Ошибка авторизации:', error);
@@ -137,11 +137,11 @@ const Authorization = () => {
 
       const role = response.data.role || 'user';
       if (role === 'admin') {
-        navigate('/admin_dashboard');
+        navigate('/admin_dashboard/*');
       } else if (role === 'teacher') {
-        navigate('/teacher_dashboard');
+        navigate('/teacher_dashboard/*');
       } else {
-        navigate('/personal_account');
+        navigate('/personal_account/*');
       }
     } catch (error) {
       console.error('Ошибка регистрации:', error);

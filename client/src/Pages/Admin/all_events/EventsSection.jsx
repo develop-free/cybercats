@@ -19,6 +19,7 @@ const EventIcon = ({ type }) => {
 };
 
 const formatDateTime = (dateTime) => {
+  if (!dateTime) return '-';
   const date = new Date(dateTime);
   return date.toLocaleString('ru-RU', {
     day: '2-digit',
@@ -93,7 +94,10 @@ const Modal = ({ isOpen, onClose, event, onSave, onDelete, isAddMode, studentsLi
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: value === '' ? null : value 
+    }));
   };
 
   const handleStudentToggle = (studentId) => {
@@ -111,14 +115,14 @@ const Modal = ({ isOpen, onClose, event, onSave, onDelete, isAddMode, studentsLi
     
     try {
       if (!formData.title || !formData.dateTime || !formData.iconType) {
-        throw new Error('Заполните все обязательные поля');
+        throw new Error('Заполните обязательные поля: название, дата и время, тип иконки');
       }
-      
+
       await onSave(formData);
       toast.success(isAddMode ? 'Мероприятие добавлено!' : 'Изменения сохранены!');
       onClose();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Ошибка при сохранении мероприятия');
     } finally {
       setIsSaving(false);
     }
@@ -130,7 +134,7 @@ const Modal = ({ isOpen, onClose, event, onSave, onDelete, isAddMode, studentsLi
       toast.success('Мероприятие удалено!');
       onClose();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Ошибка при удалении мероприятия');
     }
   };
 
@@ -221,9 +225,8 @@ const Modal = ({ isOpen, onClose, event, onSave, onDelete, isAddMode, studentsLi
                   name="teacher" 
                   value={formData.teacher || ''} 
                   onChange={handleChange}
-                  required
                 >
-                  <option value="">Выберите преподавателя</option>
+                  <option value="">Без преподавателя</option>
                   {filteredTeachers.map(teacher => (
                     <option key={teacher._id} value={teacher._id}>
                       {teacher.last_name} {teacher.first_name}
@@ -238,9 +241,8 @@ const Modal = ({ isOpen, onClose, event, onSave, onDelete, isAddMode, studentsLi
                   name="level" 
                   value={formData.level || ''} 
                   onChange={handleChange}
-                  required
                 >
-                  <option value="">Выберите уровень</option>
+                  <option value="">Без уровня</option>
                   {levelsList.map(level => (
                     <option key={level._id} value={level._id}>
                       {level.levelName}
@@ -409,33 +411,33 @@ const EventsSection = () => {
       </div>
       
       {totalPages > 1 && (
-       <div className="pagination">
-        <button
-          className="pagination-button"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          Назад
-        </button>
+        <div className="pagination">
+          <button
+            className="pagination-button"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Назад
+          </button>
 
-    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-        <button
-          key={page}
-          className={`pagination-button ${currentPage === page ? 'active' : ''}`}
-          onClick={() => handlePageChange(page)}
-        >
-          {page}
-        </button>
-      ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </button>
+          ))}
 
-      <button
-        className="pagination-button"
-        onClick={() => handlePageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        Вперед
-      </button>
-    </div>
+          <button
+            className="pagination-button"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Вперед
+          </button>
+        </div>
       )}
       
       <Modal
