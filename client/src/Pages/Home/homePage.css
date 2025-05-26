@@ -1,114 +1,236 @@
 /* Main Content */
-.container-conten-1 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 80px 0;
+.container-content-1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 5rem 0;
+  padding: 0 1rem;
 }
 
 .text-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1400px;
-    gap: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 87.5rem; /* 1400px */
+  gap: 2.5rem;
 }
 
-.greeting, .description-users {
-    width: 48%;
-    padding: 40px;
-    border: 2px solid #512da8;
-    border-radius: 25px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.greeting,
+.description-users {
+  width: 48%;
+  padding: 2.5rem;
+  border: 2px solid #512da8;
+  border-radius: 1.5625rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.greeting:hover, .description-users:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 12px 24px rgba(81, 45, 168, 0.2);
+.greeting:hover,
+.description-users:hover {
+  transform: translateY(-0.625rem);
+  box-shadow: 0 0.75rem 1.5rem rgba(81, 45, 168, 0.2);
 }
 
 .title-text-content {
-    color: #512da8;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 32px;
-    font-weight: 700;
+  color: #512da8;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .def-greeting {
-    color: #333;
-    line-height: 1.8;
-    text-align: justify;
-    font-size: 18px;
+  color: #333;
+  line-height: 1.8;
+  text-align: justify;
+  font-size: 1.125rem;
 }
 
 .points-desc {
-    list-style-type: disc;
-    padding-left: 20px;
+  list-style-type: disc;
+  padding-left: 1.25rem;
 }
 
 .points {
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 18px;
-    line-height: 1.6;
-    text-align: justify;
+  margin-bottom: 1.25rem;
+  color: #333;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  text-align: justify;
 }
 
 /* Advantages Section */
 .advantages-section {
-    margin: 80px 0;
-    text-align: center;
+  margin: 5rem 0;
+  text-align: center;
 }
 
 .advantages-section h2 {
-    color: #512da8;
-    margin-bottom: 40px;
-    font-size: 36px;
-    font-weight: 700;
+  color: #512da8;
+  margin-bottom: 2.5rem;
+  font-size: 2.25rem;
+  font-weight: 700;
 }
 
 .advantages-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+  gap: 1.25rem;
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
 }
 
 .advantage-block {
-    border: 2px solid #512da8;
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid #512da8;
+  border-radius: 0.9375rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .advantage-block:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 12px 24px rgba(81, 45, 168, 0.2);
+  transform: translateY(-0.625rem);
+  box-shadow: 0 0.75rem 1.5rem rgba(81, 45, 168, 0.2);
 }
 
 .advantage-block img {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
+  max-width: 5rem;
+  height: auto;
+  margin-bottom: 1.25rem;
+  object-fit: contain;
 }
 
 .advantage-block h3 {
-    color: #512da8;
-    margin-bottom: 10px;
-    font-size: 24px;
-    font-weight: 700;
+  color: #512da8;
+  margin-bottom: 0.625rem;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .advantage-block p {
-    color: #555;
-    line-height: 1.6;
-    font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Media Queries for Responsiveness */
+
+/* Large Desktops (>1400px) */
+@media (min-width: 87.5rem) {
+  .container-content-1 {
+    margin: 6rem 0;
+  }
+  .advantages-section {
+    margin: 6rem 0;
+  }
+}
+
+/* Tablets (768px–1024px) */
+@media (max-width: 64rem) {
+  .text-content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .greeting,
+  .description-users {
+    width: 100%;
+    padding: 1.5rem;
+  }
+  .title-text-content {
+    font-size: 1.75rem;
+  }
+  .def-greeting,
+  .points {
+    font-size: 1rem;
+  }
+  .advantages-section h2 {
+    font-size: 2rem;
+  }
+  .advantage-block h3 {
+    font-size: 1.25rem;
+  }
+  .advantage-block p {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Mobile Devices (<768px) */
+@media (max-width: 48rem) {
+  .container-content-1 {
+    margin: 3rem 0;
+    padding: 0 0.5rem;
+  }
+  .text-content {
+    gap: 1rem;
+  }
+  .greeting,
+  .description-users {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+  .title-text-content {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .def-greeting,
+  .points {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .points-desc {
+    padding-left: 1rem;
+  }
+  .advantages-section {
+    margin: 3rem 0;
+  }
+  .advantages-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .advantages-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+  .advantage-block {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+  .advantage-block img {
+    max-width: 4rem;
+  }
+  .advantage-block h3 {
+    font-size: 1.125rem;
+  }
+  .advantage-block p {
+    font-size: 0.875rem;
+  }
+}
+
+/* Small Mobile Devices (<480px) */
+@media (max-width: 30rem) {
+  .title-text-content {
+    font-size: 1.25rem;
+  }
+  .def-greeting,
+  .points {
+    font-size: 0.8125rem;
+  }
+  .advantages-section h2 {
+    font-size: 1.5rem;
+  }
+  .advantage-block img {
+    max-width: 3.5rem;
+  }
+  .advantage-block h3 {
+    font-size: 1rem;
+  }
+  .advantage-block p {
+    font-size: 0.8125rem;
+  }
 }

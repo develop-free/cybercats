@@ -13,7 +13,7 @@ const Home = () => {
   return (
     <>
       <Header />
-      <div className="container-conten-1">
+      <div className="container-content-1">
         <div className="text-content">
           <div className="greeting">
             <h3 className="title-text-content">Добро пожаловать на <br />Cyber Cats</h3>
