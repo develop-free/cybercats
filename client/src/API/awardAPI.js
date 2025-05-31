@@ -59,10 +59,39 @@ export const fetchLevels = async () => {
   }
 };
 
+export const fetchEvents = async () => {
+  try {
+    return await axios.get(`${API_URL}/awards/events`);
+  } catch (error) {
+    console.error('Ошибка при загрузке мероприятий:', error.message);
+    throw error;
+  }
+};
+
+export const fetchAwardsByStudent = async (studentId) => {
+  try {
+    return await axios.get(`${API_URL}/awards/student/${studentId}`);
+  } catch (error) {
+    console.error('Ошибка при загрузке наград студента:', error.message);
+    throw error;
+  }
+};
+
+export const getStudentIdByUser = async (userId) => {
+  try {
+    return await axios.get(`${API_URL}/awards/user/${userId}/studentId`);
+  } catch (error) {
+    console.error('Ошибка при получении studentId:', error.message);
+    throw error;
+  }
+};
+
 export const createAward = async (formData) => {
   try {
     return await axios.post(`${API_URL}/awards`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
   } catch (error) {
     console.error('Ошибка при создании награды:', error.message);

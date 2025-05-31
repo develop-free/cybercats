@@ -1,42 +1,32 @@
-/* Awards_page.css */
-
 .awards-page {
-  background-color: #f7fafc;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px;
 }
 
-.awards-container {
-  max-width: 500px;
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-}
+
 
 .awards-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #2d3748;
+  color: #512da8; /* Основной цвет сайта */
+  font-size: 28px;
+  font-weight: bold;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .awards-loading {
   text-align: center;
-  color: #4a5568;
-  font-size: 1rem;
+  color: #6c757d; /* Серый цвет, как в new-user-notice */
+  font-size: 16px;
   margin-bottom: 16px;
 }
 
 .awards-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px; /* Как в settings-form */
 }
 
 .awards-form-group {
@@ -49,48 +39,51 @@
 }
 
 .awards-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #4a5568;
-  margin-bottom: 8px;
+  color: #512da8; /* Основной цвет */
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px; /* Уменьшено для компактности */
 }
 
 .awards-input,
 .awards-select {
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #512da8; /* Граница, как в settings-form */
+  border-radius: 10px;
+  font-size: 14px;
   color: #2d3748;
-  background-color: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background: transparent; /* Прозрачный фон */
+  transition: border-color 0.3s ease;
 }
 
 .awards-input:focus,
 .awards-select:focus {
   outline: none;
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+  border-color: #673ab7; /* Цвет фокуса */
 }
 
 .awards-input:disabled,
 .awards-select:disabled {
-  background-color: #edf2f7;
+  background-color: #f8f9fa; /* Светлый фон для отключенных полей */
+  border-color: #a0aec0;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .awards-file-input {
-  font-size: 1rem;
-  color: #4a5568;
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background-color: #ffffff;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #512da8;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #2d3748;
+  background: transparent;
 }
 
 .awards-file-input:disabled {
-  background-color: #edf2f7;
+  background-color: #f8f9fa;
+  border-color: #a0aec0;
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -98,15 +91,16 @@
 .awards-file-input::-webkit-file-upload-button {
   padding: 8px 16px;
   border: none;
-  border-radius: 6px;
-  background-color: #ebf8ff;
-  color: #2b6cb0;
+  border-radius: 10px;
+  background-color: #512da8;
+  color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 .awards-file-input::-webkit-file-upload-button:hover {
-  background-color: #bee3f8;
+  background-color: #673ab7;
 }
 
 .awards-suggestions {
@@ -115,8 +109,8 @@
   left: 0;
   right: 0;
   background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 2px solid #512da8;
+  border-radius: 10px;
   max-height: 192px;
   overflow-y: auto;
   margin-top: 4px;
@@ -128,31 +122,32 @@
   padding: 8px 16px;
   color: #2d3748;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s ease;
 }
 
 .awards-suggestion-item:hover {
-  background-color: #edf2f7;
+  background-color: #f8f9fa; /* Светлый фон при наведении */
 }
 
 .awards-submit-button {
-  padding: 12px;
-  background-color: #3182ce;
+  background: #512da8; /* Основной цвет */
   color: #ffffff;
-  font-size: 1rem;
-  font-weight: 500;
   border: none;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-size: 16px;
+  transition: background 0.3s ease;
+  align-self: center;
+  margin-top: 20px;
 }
 
 .awards-submit-button:hover:not(:disabled) {
-  background-color: #2b6cb0;
+  background: #673ab7; /* Цвет при наведении */
 }
 
 .awards-submit-button:disabled {
-  background-color: #a0aec0;
+  background: #a0aec0;
   cursor: not-allowed;
   opacity: 0.6;
 }

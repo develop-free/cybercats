@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { fetchStudents, fetchDepartments, fetchGroups, fetchAwardTypes, fetchAwardDegrees, fetchLevels, createAward } from '../../../API/awardAPI';
+import { fetchStudents, fetchDepartments, fetchGroups, fetchAwardTypes, fetchAwardDegrees, fetchLevels, fetchEvents, createAward } from '../../../API/awardAPI';
 import './Awards_page.css';
 
-const AwardsPage = ({ teacherId }) => {
+const AwardsPage = () => {
   const [students, setStudents] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [groups, setGroups] = useState([]);
   const [awardTypes, setAwardTypes] = useState([]);
   const [awardDegrees, setAwardDegrees] = useState([]);
   const [levels, setLevels] = useState([]);
+  const [events, setEvents] = useState([]);
   const [formData, setFormData] = useState({
     studentId: '',
     studentName: '',
@@ -23,6 +24,7 @@ const AwardsPage = ({ teacherId }) => {
   });
   const [filteredDegrees, setFilteredDegrees] = useState([]);
   const [studentSuggestions, setStudentSuggestions] = useState([]);
+  const [eventSuggestions, setEventSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimeoutRef = useRef(null);
 
@@ -30,19 +32,36 @@ const AwardsPage = ({ teacherId }) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [studentsRes, departmentsRes, awardTypesRes, awardDegreesRes, levelsRes] = await Promise.all([
-          fetchStudents(),
-          fetchDepartments(),
-          fetchAwardTypes(),
-          fetchAwardDegrees(),
-          fetchLevels(),
+        const [studentsRes, departmentsRes, awardTypesRes, awardDegreesRes, levelsRes, eventsRes] = await Promise.all([
+          fetchStudents().catch(() => ({ data: [] })),
+          fetchDepartments().catch(() => ({ data: [] })),
+          fetchAwardTypes().catch(() => ({ data: [] })),
+          fetchAwardDegrees().catch(() => ({ data: [] })),
+          fetchLevels().catch(() => ({ data: [] })),
+          fetchEvents().catch(() => ({ data: [] })),
         ]);
 
-        setStudents(studentsRes.data || []);
+        const validStudents = (studentsRes.data || []).filter(
+          (student) =>
+            student &&
+            typeof student.last_name === 'string' &&
+            typeof student.first_name === 'string' &&
+            typeof student.middle_name === 'string'
+        );
+
+        setStudents(validStudents);
         setDepartments(departmentsRes.data || []);
         setAwardTypes(awardTypesRes.data || []);
         setAwardDegrees(awardDegreesRes.data || []);
         setLevels(levelsRes.data || []);
+        setEvents(eventsRes.data || []);
+
+        if (!validStudents.length) toast.warn('Не удалось загрузить список студентов или данные некорректны');
+        if (!departmentsRes.data.length) toast.warn('Не удалось загрузить список отделений');
+        if (!awardTypesRes.data.length) toast.warn('Не удалось загрузить типы наград');
+        if (!awardDegreesRes.data.length) toast.warn('Не удалось загрузить степени наград');
+        if (!levelsRes.data.length) toast.warn('Не удалось загрузить уровни');
+        if (!eventsRes.data.length) toast.warn('Не удалось загрузить мероприятия');
       } catch (error) {
         toast.error(`Не удалось загрузить данные: ${error.response?.data?.message || error.message}`);
         console.error('Ошибка загрузки начальных данных:', error);
@@ -64,8 +83,9 @@ const AwardsPage = ({ teacherId }) => {
 
       setIsLoading(true);
       try {
-        const groupsRes = await fetchGroups(formData.departmentId);
+        const groupsRes = await fetchGroups(formData.departmentId).catch(() => ({ data: [] }));
         setGroups(groupsRes.data || []);
+        if (!groupsRes.data.length) toast.warn('Не удалось загрузить группы');
       } catch (error) {
         toast.error(`Не удалось загрузить группы: ${error.response?.data?.message || error.message}`);
         console.error('Ошибка при загрузке групп:', error);
@@ -80,10 +100,10 @@ const AwardsPage = ({ teacherId }) => {
   }, [formData.departmentId]);
 
   useEffect(() => {
-    if (formData.awardType) {
+    if (formData.awardType && awardTypes.length > 0 && awardDegrees.length > 0) {
       const selectedType = awardTypes.find((type) => type._id === formData.awardType);
       if (selectedType && selectedType.name.toLowerCase() !== 'благодарственное письмо') {
-        const filtered = awardDegrees.filter((degree) => degree.awarddegrees_id.toString() === formData.awardType);
+        const filtered = awardDegrees.filter((degree) => degree.awardType?._id === formData.awardType);
         setFilteredDegrees(filtered);
       } else {
         setFilteredDegrees([]);
@@ -95,26 +115,63 @@ const AwardsPage = ({ teacherId }) => {
     }
   }, [formData.awardType, awardTypes, awardDegrees]);
 
-  const handleStudentNameChange = useCallback((e) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, studentName: value, studentId: '' }));
-
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (value.trim().length > 0) {
-        const filtered = students.filter((student) =>
-          `${student.last_name} ${student.first_name} ${student.middle_name}`
-            .toLowerCase()
-            .includes(value.toLowerCase())
-        );
-        setStudentSuggestions(filtered);
-      } else {
-        setStudentSuggestions([]);
+  const handleStudentNameChange = useCallback(
+    (value) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
       }
-    }, 300);
-  }, [students]);
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (value.trim().length > 0) {
+          const filtered = students.filter((student) => {
+            if (
+              !student ||
+              typeof student.last_name !== 'string' ||
+              typeof student.first_name !== 'string' ||
+              typeof student.middle_name !== 'string'
+            ) {
+              return false;
+            }
+            return `${student.last_name} ${student.first_name} ${student.middle_name}`
+              .toLowerCase()
+              .includes(value.toLowerCase());
+          });
+          setStudentSuggestions(filtered);
+        } else {
+          setStudentSuggestions([]);
+        }
+      }, 150);
+    },
+    [students]
+  );
+
+  const handleEventNameChange = useCallback(
+    (value) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (value.trim().length > 0) {
+          const filtered = events.filter((event) =>
+            event.name?.toLowerCase().includes(value.toLowerCase())
+          );
+          setEventSuggestions(filtered);
+        } else {
+          setEventSuggestions([]);
+        }
+      }, 150);
+    },
+    [events]
+  );
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'studentName') {
+      handleStudentNameChange(value);
+    } else if (name === 'eventName') {
+      handleEventNameChange(value);
+    }
+  };
 
   const handleSuggestionClick = (student) => {
     setFormData((prev) => ({
@@ -127,9 +184,12 @@ const AwardsPage = ({ teacherId }) => {
     setStudentSuggestions([]);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleEventSuggestionClick = (event) => {
+    setFormData((prev) => ({
+      ...prev,
+      eventName: event.name,
+    }));
+    setEventSuggestions([]);
   };
 
   const handleFileChange = (e) => {
@@ -140,7 +200,6 @@ const AwardsPage = ({ teacherId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Проверка обязательных полей
     if (!formData.studentId) {
       toast.error('Выберите студента');
       return;
@@ -165,10 +224,6 @@ const AwardsPage = ({ teacherId }) => {
       toast.error('Выберите уровень мероприятия');
       return;
     }
-    if (!teacherId) {
-      toast.error('ID преподавателя отсутствует');
-      return;
-    }
 
     const formDataToSend = new FormData();
     formDataToSend.append('studentId', formData.studentId);
@@ -183,25 +238,16 @@ const AwardsPage = ({ teacherId }) => {
     if (formData.file) {
       formDataToSend.append('filePath', formData.file);
     }
-    formDataToSend.append('teacherId', teacherId);
-
-    // Логирование отправляемых данных
-    console.log('Отправляемые данные:', {
-      studentId: formData.studentId,
-      departmentId: formData.departmentId,
-      groupId: formData.groupId,
-      eventName: formData.eventName,
-      awardType: formData.awardType,
-      awardDegree: formData.awardDegree,
-      level: formData.level,
-      file: formData.file ? formData.file.name : null,
-      teacherId,
-    });
 
     setIsLoading(true);
     try {
-      await createAward(formDataToSend);
+      const response = await createAward(formDataToSend);
       toast.success('Награда успешно добавлена');
+      window.dispatchEvent(
+        new CustomEvent('awardAdded', {
+          detail: { awards: response.data.awards, studentId: formData.studentId },
+        })
+      );
       setFormData({
         studentId: '',
         studentName: '',
@@ -214,6 +260,7 @@ const AwardsPage = ({ teacherId }) => {
         file: null,
       });
       setStudentSuggestions([]);
+      setEventSuggestions([]);
       setGroups([]);
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message;
@@ -236,7 +283,7 @@ const AwardsPage = ({ teacherId }) => {
               type="text"
               name="studentName"
               value={formData.studentName}
-              onChange={handleStudentNameChange}
+              onChange={handleInputChange}
               className="awards-input"
               placeholder="Введите ФИО студента"
               disabled={isLoading}
@@ -292,7 +339,7 @@ const AwardsPage = ({ teacherId }) => {
             </select>
           </div>
 
-          <div className="awards-form-group">
+          <div className="awards-form-group awards-form-group--relative">
             <label className="awards-label">Название мероприятия</label>
             <input
               type="text"
@@ -300,8 +347,22 @@ const AwardsPage = ({ teacherId }) => {
               value={formData.eventName}
               onChange={handleInputChange}
               className="awards-input"
+              placeholder="Введите название мероприятия"
               disabled={isLoading}
             />
+            {eventSuggestions.length > 0 && (
+              <ul className="awards-suggestions">
+                {eventSuggestions.map((event) => (
+                  <li
+                    key={event._id}
+                    className="awards-suggestion-item"
+                    onClick={() => handleEventSuggestionClick(event)}
+                  >
+                    {event.name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="awards-form-group">

@@ -33,7 +33,7 @@ const TeacherPage = () => {
       setAuth({ isAuthenticated: false, user: null });
       localStorage.removeItem('accessToken');
       toast.error('Сессия истекла или произошла ошибка. Пожалуйста, войдите снова.');
-      navigate('/login');
+      navigate('/authorization');
     }
   };
 

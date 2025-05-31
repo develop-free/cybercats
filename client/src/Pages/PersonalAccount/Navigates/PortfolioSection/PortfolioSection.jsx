@@ -1,20 +1,98 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-toastify';
+import { fetchAwardsByStudent, getStudentIdByUser, fetchStudents } from '../../../../API/awardAPI'; // Добавлен импорт fetchStudents
 import './PortfolioSection.css';
 
 const PortfolioSection = () => {
+  const [awards, setAwards] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentStudentId, setCurrentStudentId] = useState(null);
+  const [studentName, setStudentName] = useState('');
+
+  // Предполагается, что userId доступен через localStorage или контекст аутентификации
+  const userId = localStorage.getItem('userId'); // Замените на ваш способ получения userId
+
+  const loadStudentAndAwards = useCallback(async () => {
+    if (!userId) {
+      toast.error('Пользователь не аутентифицирован');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Получаем studentId по userId
+      const studentResponse = await getStudentIdByUser(userId);
+      const studentId = studentResponse.data.studentId;
+
+      if (!studentId) {
+        toast.error('Студент не найден для данного пользователя');
+        setIsLoading(false);
+        return;
+      }
+
+      setCurrentStudentId(studentId);
+
+      // Загружаем информацию о студенте (для отображения имени)
+      const student = await fetchStudents().then((res) =>
+        res.data.find((s) => s._id === studentId)
+      );
+      if (student) {
+        setStudentName(`${student.last_name} ${student.first_name} ${student.middle_name}`);
+      }
+
+      // Загружаем награды
+      const awardsResponse = await fetchAwardsByStudent(studentId);
+      setAwards(awardsResponse.data || []);
+    } catch (error) {
+      toast.error(`Не удалось загрузить данные: ${error.response?.data?.message || error.message}`);
+      console.error('Ошибка загрузки данных:', error);
+      setAwards([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]); // Добавляем userId как зависимость
+
+  useEffect(() => {
+    loadStudentAndAwards();
+
+    const handleAwardAdded = (event) => {
+      if (event.detail && event.detail.awards && event.detail.studentId === currentStudentId) {
+        setAwards(event.detail.awards);
+      }
+    };
+
+    window.addEventListener('awardAdded', handleAwardAdded);
+
+    return () => {
+      window.removeEventListener('awardAdded', handleAwardAdded);
+    };
+  }, [currentStudentId, loadStudentAndAwards]); // Добавляем loadStudentAndAwards в зависимости
+
   return (
     <div className="section" id="portfolio-section">
       <h2>Моё портфолио</h2>
-      <p>Здесь будут отображаться ваши проекты и работы.</p>
+      {studentName && <h3>Студент: {studentName}</h3>}
+      {isLoading && <p>Загрузка наград...</p>}
+      {!isLoading && !currentStudentId && <p>Студент не найден.</p>}
+      {!isLoading && currentStudentId && awards.length === 0 && <p>У вас пока нет наград.</p>}
       <div className="portfolio-list">
-        <div className="portfolio-card">
-          <h3>Проект "Технологии будущего"</h3>
-          <p>Описание: Разработка инновационного решения для образования.</p>
-        </div>
-        <div className="portfolio-card">
-          <h3>Проект "Искусственный интеллект"</h3>
-          <p>Описание: Исследование возможностей ИИ в медицине.</p>
-        </div>
+        {awards.map((award) => (
+          <div key={award._id} className="portfolio-card">
+            <h3>{award.eventName}</h3>
+            <p>
+              Тип награды: {award.awardType?.name || 'Не указан'}
+              {award.awardDegree ? `, Степень: ${award.awardDegree.name}` : ''}
+            </p>
+            <p>Уровень: {award.level?.levelName || 'Не указан'}</p>
+            {award.filePath && (
+              <p>
+                <a href={`/awards/${award.filePath.split('/').pop()}`} target="_blank" rel="noopener noreferrer">
+                  Просмотреть документ
+                </a>
+              </p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
