@@ -87,7 +87,7 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
         const avatarUrl = profileData.avatar
           ? profileData.avatar.startsWith('http')
             ? profileData.avatar
-            : `http://localhost:5000${profileData.avatar}`
+            : `https://cyber-cats.ru${profileData.avatar}`
           : null;
 
         setProfile({
@@ -389,7 +389,7 @@ const SettingsSection = ({ onProfileUpdate, initialData }) => {
           const avatarUrl = updatedProfile.data.avatar
             ? updatedProfile.data.avatar.startsWith('http')
               ? updatedProfile.data.avatar
-              : `http://localhost:5000${updatedProfile.data.avatar}`
+              : `https://cyber-cats.ru${updatedProfile.data.avatar}`
             : null;
           setProfile({
             last_name: updatedProfile.data.last_name || '',
