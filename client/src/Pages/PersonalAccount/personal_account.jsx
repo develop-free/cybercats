@@ -60,7 +60,7 @@ const PersonalAccount = () => {
       const avatarUrl = profileResponse.data?.avatar
         ? profileResponse.data.avatar.startsWith('http')
           ? profileResponse.data.avatar
-          : `http://localhost:5000${profileResponse.data.avatar}`
+          : `https://cyber-cats.ru${profileResponse.data.avatar}`
         : null;
       setUserData({
         firstName: profileResponse.data?.first_name || 'Новый',
@@ -76,7 +76,7 @@ const PersonalAccount = () => {
       if (error.response?.status === 401) {
         console.warn('Ошибка 401, перенаправление на /login');
         localStorage.removeItem('accessToken');
-        navigate('/login');
+        navigate('/authorization');
       }
     }
   }, [navigate]);
@@ -86,7 +86,7 @@ const PersonalAccount = () => {
     console.log('Проверка токена:', token ? 'Токен присутствует' : 'Токен отсутствует');
     if (!token) {
       console.warn('Токен отсутствует, перенаправление на /login');
-      navigate('/login');
+      navigate('/authorization');
       return;
     }
     fetchUserProfile();
@@ -97,7 +97,7 @@ const PersonalAccount = () => {
     const avatarUrl = updatedData.avatar
       ? updatedData.avatar.startsWith('http')
         ? updatedData.avatar
-        : `http://localhost:5000${updatedData.avatar}`
+        : `https://cyber-cats.ru${updatedData.avatar}`
       : null;
     setUserData((prev) => ({
       ...prev,
