@@ -1,6 +1,4 @@
 import { useState, useContext } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTelegram, faVk, faGoogle, faYandex } from '@fortawesome/free-brands-svg-icons';
 import { registerUser, loginUser } from '../../API/api';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -152,12 +150,6 @@ const Authorization = () => {
     }
   };
 
-  const socialLinks = [
-    { icon: faTelegram, url: 'https://telegram.org' },
-    { icon: faVk, url: 'https://vk.com' },
-    { icon: faGoogle, url: 'https://google.com' },
-    { icon: faYandex, url: 'https://yandex.ru' },
-  ];
 
   return (
     <div className="auth-container">
@@ -167,21 +159,6 @@ const Authorization = () => {
           {isSignUp ? (
             <form onSubmit={handleRegisterSubmit}>
               <h1 className="heading">Создать аккаунт</h1>
-              <div className="social-icons">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    className="icon"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Login with ${social.icon.iconName}`}
-                  >
-                    <FontAwesomeIcon icon={social.icon} />
-                  </a>
-                ))}
-              </div>
-              <span>или зарегистрироваться через Email и пароль</span>
               <input
                 type="text"
                 name="login"
@@ -215,21 +192,6 @@ const Authorization = () => {
           ) : (
             <form onSubmit={handleLoginSubmit}>
               <h1 className="heading">Авторизация</h1>
-              <div className="social-icons">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.url}
-                    className="icon"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Login with ${social.icon.iconName}`}
-                  >
-                    <FontAwesomeIcon icon={social.icon} />
-                  </a>
-                ))}
-              </div>
-              <span>или войти через логин и пароль</span>
               <input
                 type="text"
                 name="login"
