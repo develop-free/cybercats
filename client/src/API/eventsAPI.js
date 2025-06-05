@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://cyber-cats.ru/api/events';
+const API_URL = 'http://localhost:5000/api/events';
 
 export const fetchEvents = async () => {
   try {
