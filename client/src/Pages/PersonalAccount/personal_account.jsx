@@ -60,7 +60,7 @@ const PersonalAccount = () => {
       const avatarUrl = profileResponse.data?.avatar
         ? profileResponse.data.avatar.startsWith('http')
           ? profileResponse.data.avatar
-          : `http://localhost:5000${profileResponse.data.avatar}`
+          : `http://localhost:5000/api${profileResponse.data.avatar}`
         : null;
       setUserData({
         firstName: profileResponse.data?.first_name || 'Новый',
@@ -97,7 +97,7 @@ const PersonalAccount = () => {
     const avatarUrl = updatedData.avatar
       ? updatedData.avatar.startsWith('http')
         ? updatedData.avatar
-        : `http://localhost:5000${updatedData.avatar}`
+        : `http://localhost:5000/api${updatedData.avatar}`
       : null;
     setUserData((prev) => ({
       ...prev,
