@@ -49,6 +49,9 @@ const AwardsPage = () => {
             typeof student.middle_name === 'string'
         );
 
+        console.log('Award Types:', awardTypesRes.data);
+        console.log('Award Degrees:', awardDegreesRes.data);
+
         setStudents(validStudents);
         setDepartments(departmentsRes.data || []);
         setAwardTypes(awardTypesRes.data || []);
@@ -101,19 +104,26 @@ const AwardsPage = () => {
 
   useEffect(() => {
     if (formData.awardType && awardTypes.length > 0 && awardDegrees.length > 0) {
-      const selectedType = awardTypes.find((type) => type._id === formData.awardType);
-      if (selectedType && selectedType.name.toLowerCase() !== 'благодарственное письмо') {
-        const filtered = awardDegrees.filter((degree) => degree.awardType?._id === formData.awardType);
-        setFilteredDegrees(filtered);
-      } else {
-        setFilteredDegrees([]);
+      console.log('Selected Award Type ID:', formData.awardType);
+      const filtered = awardDegrees.filter((degree) => {
+        const hasAwardTypesId = degree.awardtypes_id && String(degree.awardtypes_id).length > 0;
+        const match = hasAwardTypesId && degree.awardtypes_id.toString() === formData.awardType;
+        console.log(`Degree: ${degree.name}, AwardTypes ID: ${degree.awardtypes_id}, Has AwardTypes ID: ${hasAwardTypesId}, Match: ${match}`);
+        return match;
+      });
+      setFilteredDegrees(filtered);
+      if (!filtered.some((degree) => degree._id === formData.awardDegree)) {
         setFormData((prev) => ({ ...prev, awardDegree: '' }));
+      }
+      console.log('Filtered Degrees:', filtered);
+      if (filtered.length === 0) {
+        toast.warn('Для выбранного типа награды нет доступных степеней');
       }
     } else {
       setFilteredDegrees([]);
       setFormData((prev) => ({ ...prev, awardDegree: '' }));
     }
-  }, [formData.awardType, awardTypes, awardDegrees]);
+  }, [formData.awardType, awardTypes, awardDegrees, formData.awardDegree]);
 
   const handleStudentNameChange = useCallback(
     (value) => {
@@ -152,7 +162,7 @@ const AwardsPage = () => {
       debounceTimeoutRef.current = setTimeout(() => {
         if (value.trim().length > 0) {
           const filtered = events.filter((event) =>
-            event.name?.toLowerCase().includes(value.toLowerCase())
+            event.title?.toLowerCase().includes(value.toLowerCase())
           );
           setEventSuggestions(filtered);
         } else {
@@ -187,7 +197,8 @@ const AwardsPage = () => {
   const handleEventSuggestionClick = (event) => {
     setFormData((prev) => ({
       ...prev,
-      eventName: event.name,
+      eventName: event.title,
+      eventId: event._id, // Сохраняем eventId для отправки на сервер
     }));
     setEventSuggestions([]);
   };
@@ -220,6 +231,10 @@ const AwardsPage = () => {
       toast.error('Выберите тип награды');
       return;
     }
+    if (filteredDegrees.length > 0 && !formData.awardDegree) {
+      toast.error('Выберите степень награды');
+      return;
+    }
     if (!formData.level) {
       toast.error('Выберите уровень мероприятия');
       return;
@@ -230,6 +245,7 @@ const AwardsPage = () => {
     formDataToSend.append('departmentId', formData.departmentId);
     formDataToSend.append('groupId', formData.groupId);
     formDataToSend.append('eventName', formData.eventName);
+    formDataToSend.append('eventId', formData.eventId || ''); // Добавляем eventId
     formDataToSend.append('awardType', formData.awardType);
     if (formData.awardDegree) {
       formDataToSend.append('awardDegree', formData.awardDegree);
@@ -254,6 +270,7 @@ const AwardsPage = () => {
         departmentId: '',
         groupId: '',
         eventName: '',
+        eventId: '', // Сбрасываем eventId
         awardType: '',
         awardDegree: '',
         level: '',
@@ -262,6 +279,7 @@ const AwardsPage = () => {
       setStudentSuggestions([]);
       setEventSuggestions([]);
       setGroups([]);
+      setFilteredDegrees([]);
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message;
       toast.error(`Не удалось добавить награду: ${errorMessage}`);
@@ -358,7 +376,7 @@ const AwardsPage = () => {
                     className="awards-suggestion-item"
                     onClick={() => handleEventSuggestionClick(event)}
                   >
-                    {event.name}
+                    {event.title}
                   </li>
                 ))}
               </ul>
@@ -392,7 +410,7 @@ const AwardsPage = () => {
               className="awards-select"
               disabled={!formData.awardType || filteredDegrees.length === 0 || isLoading}
             >
-              <option value="">Выберите степень награды</option>
+              <option value="">{filteredDegrees.length === 0 ? 'Степень недоступна' : 'Выберите степень награды'}</option>
               {filteredDegrees.map((degree) => (
                 <option key={degree._id} value={degree._id}>
                   {degree.name}

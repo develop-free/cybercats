@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { fetchAwardsByStudent, getStudentIdByUser, fetchStudents } from '../../../../API/awardAPI'; // Добавлен импорт fetchStudents
+import { fetchAwardsByStudent, getStudentIdByUser, fetchStudents } from '../../../../API/awardAPI';
 import './PortfolioSection.css';
 
-const PortfolioSection = () => {
+const PortfolioSection = ({ userId }) => { // userId передается через пропсы
   const [awards, setAwards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStudentId, setCurrentStudentId] = useState(null);
   const [studentName, setStudentName] = useState('');
-
-  // Предполагается, что userId доступен через localStorage или контекст аутентификации
-  const userId = localStorage.getItem('userId'); // Замените на ваш способ получения userId
 
   const loadStudentAndAwards = useCallback(async () => {
     if (!userId) {
@@ -40,7 +37,7 @@ const PortfolioSection = () => {
         setStudentName(`${student.last_name} ${student.first_name} ${student.middle_name}`);
       }
 
-      // Загружаем награды
+      // Загружаем награды по studentId
       const awardsResponse = await fetchAwardsByStudent(studentId);
       setAwards(awardsResponse.data || []);
     } catch (error) {
@@ -50,7 +47,7 @@ const PortfolioSection = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]); // Добавляем userId как зависимость
+  }, [userId]);
 
   useEffect(() => {
     loadStudentAndAwards();
@@ -66,7 +63,7 @@ const PortfolioSection = () => {
     return () => {
       window.removeEventListener('awardAdded', handleAwardAdded);
     };
-  }, [currentStudentId, loadStudentAndAwards]); // Добавляем loadStudentAndAwards в зависимости
+  }, [currentStudentId, loadStudentAndAwards]);
 
   return (
     <div className="section" id="portfolio-section">
