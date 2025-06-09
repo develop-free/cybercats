@@ -150,9 +150,15 @@ const Authorization = () => {
     }
   };
 
-
   return (
-    <div className="auth-container">
+      <div className="auth-page"> {/* Изменили класс на auth-page */}
+      <button 
+        onClick={() => navigate(-1)} 
+        className="back-button-absolute"
+      >
+        <i className="fas fa-arrow-left"></i> Назад
+      </button>
+      
       <ToastContainer position="top-right" autoClose={5000} />
       <div className={`container ${isSignUp ? 'active' : ''}`} id="container">
         <div className={`form-container ${isSignUp ? 'sign-up' : 'sign-in'}`}>

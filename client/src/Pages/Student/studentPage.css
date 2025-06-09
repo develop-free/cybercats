@@ -1,0 +1,233 @@
+/* Main Container */
+.students-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5rem 0;
+  padding: 0 1rem;
+}
+
+/* Intro Section */
+.intro-section {
+  max-width: 87.5rem; /* 1400px */
+  text-align: center;
+  padding: 2.5rem;
+  border: 2px solid #512da8;
+  border-radius: 1.5625rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 3rem;
+}
+
+.intro-section:hover {
+  transform: translateY(-0.625rem);
+  box-shadow: 0 0.75rem 1.5rem rgba(81, 45, 168, 0.2);
+}
+
+.section-title {
+  color: #512da8;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.intro-text {
+  color: #333;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  text-align: justify;
+}
+
+/* Features Section */
+.features-section {
+  max-width: 87.5rem; /* 1400px */
+  margin-bottom: 3rem;
+}
+
+.section-subtitle {
+  color: #512da8;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.features-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18.75rem, 1fr));
+  gap: 1.25rem;
+}
+
+.feature-block {
+  border: 2px solid #512da8;
+  border-radius: 0.9375rem;
+  padding: 1.25rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-block:hover {
+  transform: translateY(-0.625rem);
+  box-shadow: 0 0.75rem 1.5rem rgba(81, 45, 168, 0.2);
+}
+
+.feature-icon {
+  max-width: 5rem;
+  height: auto;
+  margin-bottom: 1.25rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  transition: transform 0.3s ease;
+}
+
+.feature-block:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.feature-block h4 {
+  color: #512da8;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.625rem;
+}
+
+.feature-block p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Leaderboard Highlight */
+.leaderboard-highlight {
+  max-width: 87.5rem; /* 1400px */
+  text-align: center;
+  padding: 2.5rem;
+  border: 2px solid #512da8;
+  border-radius: 1.5625rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.leaderboard-highlight:hover {
+  transform: translateY(-0.625rem);
+  box-shadow: 0 0.75rem 1.5rem rgba(81, 45, 168, 0.2);
+}
+
+.highlight-text {
+  color: #333;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  text-align: center;
+}
+
+/* Responsive Styles */
+
+/* Large Desktops (>1400px) */
+@media (min-width: 87.5rem) {
+  .students-container {
+    margin: 6rem 0;
+  }
+}
+
+/* Tablets (768px–1024px) */
+@media screen and (max-width: 64rem) {
+  .intro-section {
+    padding: 1.5rem;
+  }
+  .section-title {
+    font-size: 2rem;
+  }
+  .intro-text {
+    font-size: 1rem;
+  }
+  .section-subtitle {
+    font-size: 1.75rem;
+  }
+  .feature-block h4 {
+    font-size: 1.25rem;
+  }
+  .feature-block p {
+    font-size: 0.9375rem;
+  }
+  .leaderboard-highlight {
+    padding: 1.5rem;
+  }
+  .highlight-text {
+    font-size: 1rem;
+  }
+  .feature-icon {
+    max-width: 4.5rem;
+  }
+}
+
+/* Mobile Devices (<768px) */
+@media screen and (max-width: 48rem) {
+  .students-container {
+    margin: 3rem 0;
+    padding: 0 0.5rem;
+  }
+  .intro-section,
+  .leaderboard-highlight {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+  .section-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+  .intro-text,
+  .highlight-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .section-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .features-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+  .feature-block {
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+  .feature-icon {
+    max-width: 4rem;
+  }
+  .feature-block h4 {
+    font-size: 1.125rem;
+  }
+  .feature-block p {
+    font-size: 0.875rem;
+  }
+}
+
+/* Small Mobile Devices (<480px) */
+@media screen and (max-width: 30rem) {
+  .section-title {
+    font-size: 1.5rem;
+  }
+  .intro-text,
+  .highlight-text {
+    font-size: 0.8125rem;
+  }
+  .section-subtitle {
+    font-size: 1.25rem;
+  }
+  .feature-icon {
+    max-width: 3.5rem;
+  }
+  .feature-block h4 {
+    font-size: 1rem;
+  }
+  .feature-block p {
+    font-size: 0.8125rem;
+  }
+}   

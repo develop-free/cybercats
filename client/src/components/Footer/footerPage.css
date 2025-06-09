@@ -1,7 +1,19 @@
+/* Wrapper for the entire page to ensure footer stays at the bottom */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Full viewport height */
+}
+
+.main-content {
+  flex: 1; /* Push footer to the bottom */
+}
+
 .main-footer {
   background: linear-gradient(to right, #e2e2e2, #c9d6ff);
   padding: 1.25rem 0;
   text-align: center;
+  /* Removed position: fixed, bottom, left, right, and z-index */
 }
 
 .container-03 {
@@ -67,6 +79,10 @@
 
 /* Tablets (768px–1024px) */
 @media (max-width: 64rem) {
+  .main-footer {
+    padding: 1rem 0;
+    margin-top: 2rem; /* Lower the footer */
+  }
   .contact {
     display: none;
   }
@@ -96,6 +112,7 @@
 @media (max-width: 48rem) {
   .main-footer {
     padding: 1rem 0;
+    margin-top: 2rem; /* Lower the footer */
   }
   .contact {
     display: none;
@@ -124,6 +141,9 @@
 
 /* Small Mobile Devices (<480px) */
 @media (max-width: 30rem) {
+  .main-footer {
+    margin-top: 2rem; /* Maintain lowered position */
+  }
   .social-icon img {
     width: 1.5rem;
     height: 1.5rem;
