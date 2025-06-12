@@ -11,61 +11,68 @@ const Authorization = () => {
   const [loginData, setLoginData] = useState({ login: '', password: '' });
   const [registerData, setRegisterData] = useState({ login: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { setAuth } = useContext(AuthContext);
 
-  const toggleForm = () => setIsSignUp(!isSignUp);
+  const toggleForm = () => {
+    setIsSignUp(!isSignUp);
+    setErrors({});
+  };
 
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: null });
+    }
   };
 
   const handleRegisterChange = (e) => {
     setRegisterData({ ...registerData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: null });
+    }
   };
 
   const validateLoginForm = () => {
+    const newErrors = {};
+    
     if (!loginData.login.trim()) {
-      toast.error('Поле "Логин или email" обязательно для заполнения');
-      return false;
+      newErrors.login = 'Поле "Логин или email" обязательно для заполнения';
     }
     if (!loginData.password.trim()) {
-      toast.error('Поле "Пароль" обязательно для заполнения');
-      return false;
+      newErrors.password = 'Поле "Пароль" обязательно для заполнения';
+    } else if (loginData.password.length < 6) {
+      newErrors.password = 'Пароль должен содержать минимум 6 символов';
     }
-    if (loginData.password.length < 6) {
-      toast.error('Пароль должен содержать минимум 6 символов');
-      return false;
-    }
-    return true;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const validateRegisterForm = () => {
+    const newErrors = {};
+    
     if (!registerData.login.trim()) {
-      toast.error('Поле "Логин" обязательно для заполнения');
-      return false;
+      newErrors.login = 'Поле "Логин" обязательно для заполнения';
+    } else if (registerData.login.length < 3) {
+      newErrors.login = 'Логин должен содержать минимум 3 символа';
     }
-    if (registerData.login.length < 3) {
-      toast.error('Логин должен содержать минимум 3 символа');
-      return false;
-    }
+    
     if (!registerData.email.trim()) {
-      toast.error('Поле "Email" обязательно для заполнения');
-      return false;
+      newErrors.email = 'Поле "Email" обязательно для заполнения';
+    } else if (!/^\S+@\S+\.\S+$/.test(registerData.email)) {
+      newErrors.email = 'Введите корректный email';
     }
-    if (!/^\S+@\S+\.\S+$/.test(registerData.email)) {
-      toast.error('Введите корректный email');
-      return false;
-    }
+    
     if (!registerData.password.trim()) {
-      toast.error('Поле "Пароль" обязательно для заполнения');
-      return false;
+      newErrors.password = 'Поле "Пароль" обязательно для заполнения';
+    } else if (registerData.password.length < 6) {
+      newErrors.password = 'Пароль должен содержать минимум 6 символов';
     }
-    if (registerData.password.length < 6) {
-      toast.error('Пароль должен содержать минимум 6 символов');
-      return false;
-    }
-    return true;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleLoginSubmit = async (e) => {
@@ -150,8 +157,8 @@ const Authorization = () => {
     }
   };
 
-  return (
-      <div className="auth-page"> {/* Изменили класс на auth-page */}
+return (
+    <div className="auth-page">
       <button 
         onClick={() => navigate(-1)} 
         className="back-button-absolute"
@@ -165,56 +172,71 @@ const Authorization = () => {
           {isSignUp ? (
             <form onSubmit={handleRegisterSubmit}>
               <h1 className="heading">Создать аккаунт</h1>
-              <input
-                type="text"
-                name="login"
-                placeholder="Логин"
-                value={registerData.login}
-                onChange={handleRegisterChange}
-                required
-                minLength="3"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={registerData.email}
-                onChange={handleRegisterChange}
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Пароль (минимум 6 символов)"
-                value={registerData.password}
-                onChange={handleRegisterChange}
-                required
-                minLength="6"
-              />
-              <button type="submit" disabled={isLoading}>
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  name="login"
+                  placeholder="Логин"
+                  value={registerData.login}
+                  onChange={handleRegisterChange}
+                  className={errors.login ? 'error' : ''}
+                />
+                {errors.login && <span className="error-message">{errors.login}</span>}
+              </div>
+              <div className="input-wrapper">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={registerData.email}
+                  onChange={handleRegisterChange}
+                  className={errors.email ? 'error' : ''}
+                />
+                {errors.email && <span className="error-message">{errors.email}</span>}
+              </div>
+              <div className="input-wrapper">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Пароль (минимум 6 символов)"
+                  value={registerData.password}
+                  onChange={handleRegisterChange}
+                  className={errors.password ? 'error' : ''}
+                />
+                {errors.password && <span className="error-message">{errors.password}</span>}
+              </div>
+              <button type="submit" disabled={isLoading} className="auth-button">
                 {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+              </button>
+              <button type="button" className="toggle-link" onClick={toggleForm}>
+                Уже есть аккаунт? Войти
               </button>
             </form>
           ) : (
             <form onSubmit={handleLoginSubmit}>
               <h1 className="heading">Авторизация</h1>
-              <input
-                type="text"
-                name="login"
-                placeholder="Логин (email или логин)"
-                value={loginData.login}
-                onChange={handleLoginChange}
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Пароль"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                required
-                minLength="6"
-              />
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  name="login"
+                  placeholder="Логин или email"
+                  value={loginData.login}
+                  onChange={handleLoginChange}
+                  className={errors.login ? 'error' : ''}
+                />
+                {errors.login && <span className="error-message">{errors.login}</span>}
+              </div>
+              <div className="input-wrapper">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Пароль"
+                  value={loginData.password}
+                  onChange={handleLoginChange}
+                  className={errors.password ? 'error' : ''}
+                />
+                {errors.password && <span className="error-message">{errors.password}</span>}
+              </div>
               <button
                 type="button"
                 onClick={() => toast.info('Функция восстановления пароля пока недоступна')}
@@ -222,8 +244,11 @@ const Authorization = () => {
               >
                 Забыли пароль?
               </button>
-              <button type="submit" disabled={isLoading}>
+              <button type="submit" disabled={isLoading} className="auth-button">
                 {isLoading ? 'Вход...' : 'Войти'}
+              </button>
+              <button type="button" className="toggle-link" onClick={toggleForm}>
+                Нет аккаунта? Зарегистрироваться
               </button>
             </form>
           )}

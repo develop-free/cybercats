@@ -18,12 +18,12 @@ const Rating = () => {
       try {
         setLoading(true);
         const mockStudents = [
-          { id: 1, fullName: 'Иванов Иван Иванович', department: 'ИТ', group: 'ИТ-101', level: 3, points: 95 },
-          { id: 2, fullName: 'Петрова Анна Сергеевна', department: 'ИТ', group: 'ИТ-102', level: 2, points: 88 },
-          { id: 3, fullName: 'Сидоров Алексей Петрович', department: 'Экономика', group: 'ЭК-201', level: 4, points: 92 },
-          { id: 4, fullName: 'Кузнецова Мария Ивановна', department: 'ИТ', group: 'ИТ-101', level: 3, points: 85 },
-          { id: 5, fullName: 'Смирнов Дмитрий Андреевич', department: 'Экономика', group: 'ЭК-202', level: 1, points: 78 },
-          { id: 6, fullName: 'Васильева Елена Викторовна', department: 'ИТ', group: 'ИТ-102', level: 2, points: 90 },
+          { id: 1, fullName: 'Арнольд Александр Сергеевич', department: 'ИСиП', group: '103', achievementLevel: 3, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
+          { id: 2, fullName: '', department: 'ИСиП', group: '103', achievementLevel: 2, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
+          { id: 3, fullName: 'Сидоров Алексей Петрович', department: 'ИСиП', group: '203', achievementLevel: 4, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
+          { id: 4, fullName: 'Кузнецова Полина Ивановна', department: 'ИСиП', group: '103', achievementLevel: 3, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
+          { id: 5, fullName: 'Смирнов Дмитрий Андреевич', department: 'ИСиП', group: '203', achievementLevel: 1, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
+          { id: 6, fullName: 'Васильева Елена Викторовна', department: 'ИСиП', group: '203', achievementLevel: 2, levels_rat: Math.floor(Math.random() * 5) + 1, points: Math.floor(Math.random() * 101) },
         ];
         setStudents(mockStudents.sort((a, b) => b.points - a.points));
       } catch (error) {
@@ -90,71 +90,83 @@ const Rating = () => {
               </div>
             </div>
             
-           <div className="rating-table-container">
-            <div className="rating-table-desktop">
-              <table className="rating-table">
-                <thead>
-                  <tr>
-                    <th className="place-col">№</th>
-                    <th className="name-col">ФИО</th>
-                    <th className="dept-col">Отделение</th>
-                    <th className="group-col">Группа</th>
-                    <th className="level-col">Уровень</th>
-                    <th className="points-col" onClick={handleSort}>
-                      Баллы {sortOrder === 'desc' ? '▼' : '▲'}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedStudents.map((student, index) => (
-                    <tr key={student.id}>
-                      <td className="place-col">{(currentPage - 1) * studentsPerPage + index + 1}</td>
-                      <td className="name-col">{student.fullName}</td>
-                      <td className="dept-col">{student.department}</td>
-                      <td className="group-col">{student.group}</td>
-                      <td className="level-col">
-                        <span className={`level-badge level-${student.level}`}>
-                          {student.level}
-                        </span>
-                      </td>
-                      <td className="points-col">
-                        <span className="points-value">{student.points}</span>
-                      </td>
+            <div className="rating-table-container">
+              <div className="rating-table-desktop">
+                <table className="rating-table">
+                  <thead>
+                    <tr>
+                      <th className="place-col">№</th>
+                      <th className="name-col">ФИО</th>
+                      <th className="dept-col">Отделение</th>
+                      <th className="group-col">Группа</th>
+                      <th className="level-col">Уровень достижений</th>
+                      <th className="rating-level-col">Рейтинговый уровень</th>
+                      <th className="points-col" onClick={handleSort}>
+                        Баллы {sortOrder === 'desc' ? '▼' : '▲'}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="rating-table-mobile">
-              {paginatedStudents.map((student, index) => (
-                <div key={student.id} className="rating-card">
-                  <div className="card-header">
-                    <span className="card-position">{(currentPage - 1) * studentsPerPage + index + 1}</span>
-                    <h3 className="card-name">{student.fullName}</h3>
-                    <span className={`level-badge level-${student.level}`}>
-                      Уровень {student.level}
-                    </span>
-                  </div>
-                  <div className="card-details">
-                    <div className="detail-row">
-                      <span>Отделение:</span>
-                      <span>{student.department}</span>
-                    </div>
-                    <div className="detail-row">
-                      <span>Группа:</span>
-                      <span>{student.group}</span>
-                    </div>
-                    <div className="detail-row highlight">
-                      <span>Баллы:</span>
-                      <span onClick={handleSort} className="points-value">
-                        {student.points} {sortOrder === 'desc' ? '▼' : '▲'}
+                  </thead>
+                  <tbody>
+                    {paginatedStudents.map((student, index) => (
+                      <tr key={student.id}>
+                        <td className="place-col">{(currentPage - 1) * studentsPerPage + index + 1}</td>
+                        <td className="name-col">{student.fullName}</td>
+                        <td className="dept-col">{student.department}</td>
+                        <td className="group-col">{student.group}</td>
+                        <td className="level-col">
+                          <span className={`level-badge level-${student.achievementLevel}`}>
+                            {student.achievementLevel}
+                          </span>
+                        </td>
+                        <td className="rating-level-col">
+                          <span className={`level-badge level-${student.levels_rat}`}>
+                            {student.levels_rat}
+                          </span>
+                        </td>
+                        <td className="points-col">
+                          <span className="points-value">{student.points}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div className="rating-table-mobile">
+                {paginatedStudents.map((student, index) => (
+                  <div key={student.id} className="rating-card">
+                    <div className="card-header">
+                      <span className="card-position">{(currentPage - 1) * studentsPerPage + index + 1}</span>
+                      <h3 className="card-name">{student.fullName}</h3>
+                      <span className={`level-badge level-${student.achievementLevel}`}>
+                        Уровень достижений {student.achievementLevel}
                       </span>
                     </div>
+                    <div className="card-details">
+                      <div className="detail-row">
+                        <span>Отделение:</span>
+                        <span>{student.department}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span>Группа:</span>
+                        <span>{student.group}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span>Рейтинговый уровень:</span>
+                        <span className={`level-badge level-${student.levels_rat}`}>
+                          {student.levels_rat}
+                        </span>
+                      </div>
+                      <div className="detail-row highlight">
+                        <span>Баллы:</span>
+                        <span onClick={handleSort} className="points-value">
+                          {student.points} {sortOrder === 'desc' ? '▼' : '▲'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
               {totalPages > 1 && (
                 <div className="rating-pagination">
                   <button
@@ -191,4 +203,4 @@ const Rating = () => {
   );
 };
 
-export default Rating;  
+export default Rating;

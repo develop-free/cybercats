@@ -48,7 +48,7 @@ const PersonalAccount = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const calculateProgress = (points, currentLevel) => {
-    const pointsNeededForNextLevel = 100;
+    const pointsNeededForNextLevel = 50;
     const pointsInCurrentLevel = points % pointsNeededForNextLevel;
     return (pointsInCurrentLevel / pointsNeededForNextLevel) * 100;
   };
@@ -67,7 +67,7 @@ const PersonalAccount = () => {
         lastName: profileResponse.data?.last_name || 'Пользователь',
         isNewUser: profileResponse.isNewUser || false,
         avatar: avatarUrl,
-        points: profileResponse.data?.points || 0,
+        points: profileResponse.data?.points || 45,
         level: profileResponse.data?.level || 1,
       });
     } catch (error) {
